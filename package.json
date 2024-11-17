@@ -1,0 +1,23 @@
+{
+  "name": "thedrewzers",
+  "version": "1.0.0",
+  "description": "Wedding website",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss build -o static/css/tailwind.css --minify",
+    "watch": "tailwindcss build -o static/css/tailwind.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apkiernan/thedrewzers.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/apkiernan/thedrewzers/issues"
+  },
+  "homepage": "https://github.com/apkiernan/thedrewzers#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}

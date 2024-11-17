@@ -1,0 +1,15 @@
+@font-face {
+  font-family: "BonheurRoyale-Regular";
+  src: url("../fonts/BonheurRoyale-Regular.ttf");
+}
+
+
+body {
+  background: url("../images/background.webp") no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.script {
+  font-family: "BonheurRoyale-Regular";
+}
