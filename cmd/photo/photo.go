@@ -17,9 +17,9 @@ func main() {
 		panic("invalid image")
 	}
 
-	img := imaging.Resize(srcImg, 250, 500, imaging.Lanczos)
+	img := imaging.Resize(srcImg, 500, 881, imaging.Lanczos)
 	filename := strings.TrimSuffix(src, path.Ext(src))
-	newFilename := fmt.Sprintf("%s_%dx%d.png", filename, 250, 500)
+	newFilename := fmt.Sprintf("%s_%dx%d.png", filename, 500, 881)
 
 	err = imaging.Save(img, newFilename)
 	if err != nil {

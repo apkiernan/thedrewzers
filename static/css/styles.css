@@ -4,7 +4,8 @@
 }
 
 
-body {
+/* Background applied to index-view instead of body */
+.index-view {
   background: url("../images/background.webp") no-repeat;
   background-size: cover;
   background-position: center;
@@ -12,4 +13,8 @@ body {
 
 .script {
   font-family: "BonheurRoyale-Regular";
+}
+
+.bg-custom-gray {
+  background-color: rgba(205, 207, 206, 0.5);
 }

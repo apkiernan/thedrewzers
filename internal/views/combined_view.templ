@@ -1,0 +1,89 @@
+package views
+
+templ CombinedView(showFirstView bool) {
+	<div class="combined-view-container">
+		<!-- Index view is always present -->
+		if showFirstView {
+			<div id="index-view" class="index-view hidden">
+				@Index()
+			</div>
+		} else {
+			<div id="index-view" class="index-view">
+				@Index()
+			</div>
+		}
+		
+		<!-- First view overlay is conditionally shown -->
+		if showFirstView {
+			<div id="first-view-overlay" class="first-view-overlay">
+				@FirstView()
+			</div>
+		}
+	</div>
+	
+	if showFirstView {
+		<style>
+			/* Combined view container styles */
+			.combined-view-container {
+				position: relative;
+				width: 100%;
+				height: 100%;
+			}
+			
+			/* Index view styles */
+			.index-view {
+				transition: opacity 1s ease-in-out;
+				opacity: 1;
+			}
+			
+			.index-view.hidden {
+				opacity: 0;
+			}
+			
+			/* First view overlay styles */
+			.first-view-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 1000;
+				transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+			}
+			
+			.first-view-overlay.fade-out {
+				opacity: 0;
+				transform: translateY(-20px);
+				pointer-events: none;
+			}
+		</style>
+		
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// Get references to elements
+				const firstViewOverlay = document.getElementById('first-view-overlay');
+				const indexView = document.getElementById('index-view');
+				const viewDetailsButton = document.querySelector('.cta-button');
+				
+				if (viewDetailsButton) {
+					// Override the default link behavior
+					viewDetailsButton.addEventListener('click', function(e) {
+						e.preventDefault();
+						
+						// Animate the first view out
+						firstViewOverlay.classList.add('fade-out');
+						indexView.classList.remove('hidden');
+						
+						// Set the cookie to remember that first view has been seen
+						document.cookie = "first_view=true; expires=" + new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000).toUTCString() + "; path=/; samesite=lax";
+						
+						// After animation completes, remove the overlay from DOM
+						setTimeout(function() {
+							firstViewOverlay.style.display = 'none';
+						}, 1000); // Match this to the CSS transition duration
+					});
+				}
+			});
+		</script>
+	}
+}
