@@ -1,5 +1,9 @@
 bin/
 tmp/
 node_modules/
+dist/
+build/
+
+.DS_Store
 
 *_templ.go

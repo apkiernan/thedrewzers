@@ -4,8 +4,8 @@
   "description": "Wedding website",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss build -o static/css/tailwind.css --minify",
-    "watch": "tailwindcss build -o static/css/tailwind.css --watch"
+    "build": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --minify",
+    "watch": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch"
   },
   "repository": {
     "type": "git",

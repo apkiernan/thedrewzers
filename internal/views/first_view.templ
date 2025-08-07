@@ -214,6 +214,8 @@ templ FirstView() {
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
         font-size: 1rem;
+        white-space: nowrap;
+        display: inline-block;
     }
 
     .cta-button:hover {
@@ -255,8 +257,9 @@ templ FirstView() {
         }
         
         .cta-button {
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-size: 0.9rem;
+            letter-spacing: 0.5px;
         }
     }
 
@@ -286,6 +289,13 @@ templ FirstView() {
         }
     }
 
+    @media (max-width: 480px) {
+        .cta-button {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+        }
+    }
+
     @media (max-width: 320px) {
         .text-line {
             padding: 0 10px;
@@ -300,6 +310,12 @@ templ FirstView() {
         .line-7 {
             font-size: 1rem;
             top: 25%;
+        }
+        
+        .cta-button {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            letter-spacing: 0;
         }
     }
 </style>
@@ -325,7 +341,7 @@ templ FirstView() {
     <div class="text-line line-7">The Kiernan/Smith Wedding</div>
     
     <div class="cta-section">
-        <a href="#view-details" class="cta-button">View Wedding Details</a>
+        <a href="#view-details" class="cta-button">View Details</a>
     </div>
 </div>
 }
