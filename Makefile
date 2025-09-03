@@ -2,7 +2,9 @@
 .PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache
 
 # Default development target
-all: tpl styles server
+all: tpl
+	@echo "Starting development servers..."
+	@make -j2 styles server
 
 # Build local development server
 build:
