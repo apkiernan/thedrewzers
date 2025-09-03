@@ -11,10 +11,43 @@
   background-position: center;
 }
 
+/* Pattern backgrounds */
+.bg-pattern-subtle {
+  background-color: #f9fafb; /* Light gray */
+  background-image: 
+    repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.01) 35px, rgba(0,0,0,.01) 70px);
+}
+
+.bg-pattern-floral {
+  background-color: #fef3f2; /* Very light pink */
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(251, 207, 232, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(251, 207, 232, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(251, 207, 232, 0.1) 0%, transparent 50%);
+}
+
 .script {
   font-family: "BonheurRoyale-Regular";
 }
 
 .bg-custom-gray {
   background-color: rgba(205, 207, 206, 0.5);
+}
+
+/* Wedding Party slideshow (JS-controlled) */
+.wedding-slides { position: relative; height: 360px; overflow: hidden; }
+.wedding-slide { position: absolute; inset: 0; opacity: 0; animation: none !important; transition: opacity 400ms ease-in-out; pointer-events: none; }
+.wedding-slide.wp-visible { opacity: 1; pointer-events: auto; }
+/* Fallback: only when JS hasn't initialized the container */
+.wedding-slides:not(.js-slideshow) .wedding-slide:first-of-type { opacity: 1; pointer-events: auto; }
+
+/* Ensure circular headshots even if Tailwind doesn't include rounded-full */
+.wedding-photo {
+  width: 8rem;   /* 32 */
+  height: 8rem;  /* 32 */
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1; /* ensure perfect square if size changes */
+  object-fit: cover;
+  display: block;
+  clip-path: circle(50% at 50% 50%);
 }

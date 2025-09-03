@@ -1,0 +1,100 @@
+package views
+
+templ WeddingPartySection() {
+	<section id="wedding-party" class="py-16 bg-white">
+		<div class="max-w-4xl mx-auto px-6 mb-8">
+			<h2 class="script text-5xl md:text-6xl text-blue-300 mb-16 font-extralight text-center">Wedding Party</h2>
+			<!-- Wedding Party slideshow styles moved to /static/css/styles.css -->
+			<div class="grid md:grid-cols-2 gap-16">
+				<div>
+					<h3 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Groomsmen</h3>
+					<div class="wedding-slides" data-interval="5000">
+						<!-- Best Man slide -->
+						<div class="wedding-slide cycle-25" style="animation-delay: 0s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Best Man photo" class="wedding-photo shadow-md" width="128" height="128" fetchpriority="high" loading="eager" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-sm uppercase tracking-wider text-gray-500">Best Man</p>
+									<p class="text-gray-700 text-lg font-medium mt-1">Ronnie Campbell</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Andrew's longtime friend. Placeholder bio about Ronnie goes here.</p>
+								</div>
+							</div>
+						</div>
+						<!-- Groomsman slides -->
+						<div class="wedding-slide cycle-25" style="animation-delay: 5s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Mike Alves</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Mike goes here.</p>
+								</div>
+							</div>
+						</div>
+						<div class="wedding-slide cycle-25" style="animation-delay: 10s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Dana Roy</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Dana goes here.</p>
+								</div>
+							</div>
+						</div>
+						<div class="wedding-slide cycle-25" style="animation-delay: 15s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Mike Silva</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Mike goes here.</p>
+								</div>
+							</div>
+						</div>
+						<div class="wedding-slide cycle-25" style="animation-delay: 20s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Pete Smith</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Pete goes here.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div>
+					<h3 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Bridesmaids</h3>
+					<div class="wedding-slides" data-interval="5000">
+						<!-- Maids of Honor slide (joint) -->
+						<div class="wedding-slide cycle-20" style="animation-delay: 0s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Maids of Honor photo" class="wedding-photo shadow-md" width="128" height="128" fetchpriority="high" loading="eager" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-sm uppercase tracking-wider text-gray-500">Maids of Honor</p>
+									<p class="text-gray-700 text-lg font-medium mt-1">Melissa Moylan &amp; Ainsley Kelliher</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Molly's closest confidants. Placeholder bio about Melissa and Ainsley goes here.</p>
+								</div>
+							</div>
+						</div>
+						<!-- Bridesmaid slides -->
+						<div class="wedding-slide cycle-20" style="animation-delay: 5s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Bridesmaid photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Kasey Silva</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Kasey goes here.</p>
+								</div>
+							</div>
+						</div>
+						<div class="wedding-slide cycle-20" style="animation-delay: 10s;">
+							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
+								<img src="https://picsum.photos/200/300" alt="Bridesmaid photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
+								<div class="mt-4">
+									<p class="text-gray-700 text-lg font-medium">Allison Chisholm</p>
+									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Allison goes here.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+}

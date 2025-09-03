@@ -1,15 +1,20 @@
 package views
 
 templ App(page templ.Component) {
-	<html lang="en">
+	<html lang="en" class="scroll-smooth">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <link href="/static/css/tailwind.css" rel="stylesheet"/>
-      <title>The Drewzers are getting married!</title>
+			<link href="/static/css/tailwind.css" rel="stylesheet"/>
+			<link href="/static/css/styles.css" rel="stylesheet"/>
+			<link rel="dns-prefetch" href="https://picsum.photos"/>
+			<link rel="preconnect" href="https://picsum.photos" crossorigin/>
+			<link rel="preload" as="image" href="https://picsum.photos/200/300" imagesrcset="https://picsum.photos/200/300 1x"/>
+			<script src="/static/js/slideshow.js" defer></script>
+			<title>The Drewzers are getting married!</title>
 		</head>
-		<body class="flex flex-col h-screen">
+		<body class="flex flex-col min-h-screen">
 			@page
 		</body>
 	</html>
