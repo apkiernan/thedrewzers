@@ -125,7 +125,7 @@ resource "aws_iam_policy" "lambda_s3_access" {
           "s3:GetObject",
           "s3:ListBucket",
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           aws_s3_bucket.static_assets.arn,
           "${aws_s3_bucket.static_assets.arn}/*"
@@ -147,26 +147,63 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# DynamoDB permissions for Lambda
+resource "aws_iam_role_policy" "lambda_dynamodb" {
+  name = "${var.app_name}-lambda-dynamodb"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:DeleteItem"
+        ]
+        Resource = [
+          aws_dynamodb_table.wedding_guests.arn,
+          "${aws_dynamodb_table.wedding_guests.arn}/index/*",
+          aws_dynamodb_table.wedding_rsvps.arn,
+          aws_dynamodb_table.wedding_admins.arn
+        ]
+      }
+    ]
+  })
+}
+
 # Lambda function
 resource "aws_lambda_function" "app" {
   function_name = var.app_name
   description   = "Lambda function for ${var.app_name}"
-  
+
   filename         = var.lambda_zip_path
   source_code_hash = filebase64sha256(var.lambda_zip_path)
-  
+
   runtime = "provided.al2023"
   handler = "bootstrap"
-  
+
   role = aws_iam_role.lambda_exec.arn
-  
+
   timeout     = 30
   memory_size = 256
-  
+
   environment {
     variables = {
       S3_BUCKET_NAME = aws_s3_bucket.static_assets.bucket
       S3_REGION      = var.aws_region
+
+      # RSVP system variables
+      STATIC_BUCKET = aws_s3_bucket.static_assets.id
+      STATIC_URL    = "https://${aws_cloudfront_distribution.app_distribution.domain_name}"
+      GUESTS_TABLE  = aws_dynamodb_table.wedding_guests.name
+      RSVPS_TABLE   = aws_dynamodb_table.wedding_rsvps.name
+      ADMINS_TABLE  = aws_dynamodb_table.wedding_admins.name
+      JWT_SECRET    = var.jwt_secret
     }
   }
 }
@@ -182,19 +219,19 @@ resource "aws_apigatewayv2_stage" "lambda" {
   api_id      = aws_apigatewayv2_api.lambda.id
   name        = "$default"
   auto_deploy = true
-  
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw.arn
     format = jsonencode({
-      requestId      = "$context.requestId"
-      ip             = "$context.identity.sourceIp"
-      requestTime    = "$context.requestTime"
-      httpMethod     = "$context.httpMethod"
-      path           = "$context.path"
-      routeKey       = "$context.routeKey"
-      status         = "$context.status"
-      protocol       = "$context.protocol"
-      responseLength = "$context.responseLength"
+      requestId          = "$context.requestId"
+      ip                 = "$context.identity.sourceIp"
+      requestTime        = "$context.requestTime"
+      httpMethod         = "$context.httpMethod"
+      path               = "$context.path"
+      routeKey           = "$context.routeKey"
+      status             = "$context.status"
+      protocol           = "$context.protocol"
+      responseLength     = "$context.responseLength"
       integrationLatency = "$context.integrationLatency"
     })
   }
