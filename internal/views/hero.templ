@@ -1,5 +1,7 @@
 package views
 
+import "fmt"
+
 templ HeroSection() {
 	<header class="min-h-screen flex flex-col bg-pattern-subtle relative">
 		// Title section
@@ -19,18 +21,55 @@ templ HeroSection() {
 				<ul class="flex flex-wrap justify-center text-sm uppercase tracking-wider text-gray-500">
 					<li class="mx-4 my-2"><a href="#home" class="hover:text-gray-700 transition-colors border-b border-gray-400 pb-1">Home</a></li>
 					<li class="mx-4 my-2"><a href="#our-story" class="hover:text-gray-700 transition-colors">Our Story</a></li>
+					<li class="mx-4 my-2"><a href="/gallery" class="hover:text-gray-700 transition-colors">Gallery</a></li>
 					<li class="mx-4 my-2"><a href="#travel" class="hover:text-gray-700 transition-colors">Travel</a></li>
-					<li class="mx-4 my-2"><a href="#wedding-party" class="hover:text-gray-700 transition-colors">Wedding Party</a></li>
 					<li class="mx-4 my-2"><a href="#registry" class="hover:text-gray-700 transition-colors">Registry</a></li>
 					<li class="mx-4 my-2"><a href="#rsvp" class="hover:text-gray-700 transition-colors">RSVP</a></li>
 					<li class="mx-4 my-2"><a href="#faq" class="hover:text-gray-700 transition-colors">FAQ</a></li>
 				</ul>
 			</div>
 		</nav>
-		// Hero image
+		// Hero slideshow
 		<div class="flex-1 flex items-center justify-center px-6 py-12">
 			<div class="max-w-4xl w-full">
-				<img src="/static/images/couple_cover_500x881.png" alt="Andrew and Molly" class="w-full h-auto object-cover" style="max-height: 600px; object-fit: contain;"/>
+				<div class="slideshow-container relative" role="region" aria-label="Engagement photo slideshow" tabindex="0">
+					// Previous button
+					<button class="slideshow-nav-btn slideshow-prev" aria-label="Previous photo">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+						</svg>
+					</button>
+					// Next button
+					<button class="slideshow-nav-btn slideshow-next" aria-label="Next photo">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+						</svg>
+					</button>
+					for i := 1; i <= 40; i++ {
+						<img
+							src={ fmt.Sprintf("/static/images/slideshow/hero-%02d.jpg", i) }
+							alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 40", i) }
+							class={ "slideshow-image w-full h-auto", templ.KV("active", i == 1) }
+							style="max-height: 600px; object-fit: contain;"
+							data-slide-index={ fmt.Sprintf("%d", i-1) }
+						/>
+					}
+					<div class="slideshow-dots flex justify-center mt-6 gap-2" role="tablist" aria-label="Photo navigation">
+						for i := 1; i <= 8; i++ {
+							<button
+								class={ "slideshow-dot w-2 h-2 rounded-full transition-all", templ.KV("active", i == 1) }
+								role="tab"
+								aria-label={ fmt.Sprintf("View photos %d-%d", (i-1)*5+1, i*5) }
+								if i == 1 {
+									aria-selected="true"
+								} else {
+									aria-selected="false"
+								}
+								data-dot-index={ fmt.Sprintf("%d", i-1) }
+							></button>
+						}
+					</div>
+				</div>
 			</div>
 		</div>
 	</header>

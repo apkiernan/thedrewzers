@@ -7,12 +7,6 @@ import (
 )
 
 func HandleHomePage(w http.ResponseWriter, r *http.Request) {
-	// Check for the first_view cookie
-	cookie, err := r.Cookie("first_view")
-	
-	// Determine whether to show the first view overlay
-	showFirstView := err != nil || cookie == nil
-	
-	// Render the combined view template
-	views.App(views.CombinedView(showFirstView)).Render(r.Context(), w)
+	// Render the index view directly (no first view overlay)
+	views.App(views.Index()).Render(r.Context(), w)
 }

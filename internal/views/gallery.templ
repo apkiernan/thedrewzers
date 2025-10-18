@@ -1,0 +1,63 @@
+package views
+
+import "fmt"
+
+templ GalleryPage() {
+	<div class="min-h-screen bg-white">
+		// Header
+		<header class="bg-pattern-subtle py-16">
+			<div class="max-w-7xl mx-auto px-6">
+				<div class="text-center">
+					<h1 class="script text-6xl md:text-8xl text-blue-300 font-extralight mb-4">Our Gallery</h1>
+					<p class="text-gray-600 text-lg">Engagement Photos</p>
+					<div class="mt-8">
+						<a href="/" class="text-blue-300 hover:text-blue-400 transition-colors underline">← Back to Home</a>
+					</div>
+				</div>
+			</div>
+		</header>
+		// Gallery Grid
+		<div class="max-w-7xl mx-auto px-6 py-16">
+			<div class="gallery-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+				// First photo (no number)
+				<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
+					<img
+						src="/static/molly_andrewENG.jpg"
+						alt="Engagement photo 1"
+						class="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+						loading="lazy"
+					/>
+					<div class="gallery-overlay absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+						<span class="text-white text-sm font-medium">Photo 1</span>
+					</div>
+				</div>
+				// Numbered photos (2-264)
+				for i := 2; i <= 263; i++ {
+					<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
+						<img
+							src={ fmt.Sprintf("/static/molly_andrewENG-%d.jpg", i) }
+							alt={ fmt.Sprintf("Engagement photo %d", i) }
+							class="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+							loading="lazy"
+						/>
+						<div class="gallery-overlay absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+							<span class="text-white text-sm font-medium">Photo { fmt.Sprintf("%d", i) }</span>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+		// Back to top button
+		<div class="text-center pb-16">
+			<button
+				onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+				class="inline-flex items-center gap-2 px-6 py-3 bg-blue-300 text-white rounded-full hover:bg-blue-400 transition-colors shadow-lg hover:shadow-xl"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+				</svg>
+				Back to Top
+			</button>
+		</div>
+	</div>
+}
