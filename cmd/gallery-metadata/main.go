@@ -27,7 +27,7 @@ func main() {
 	var images []ImageMetadata
 
 	// Scan directory for all molly_andrewENG*.jpg files
-	pattern := filepath.Join(staticDir, "molly_andrewENG*.jpg")
+	pattern := filepath.Join(staticDir, "images", "molly_andrewENG*.jpg")
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		fmt.Printf("Error scanning for images: %v\n", err)
@@ -126,7 +126,7 @@ func processImage(path string) (ImageMetadata, error) {
 	}
 
 	return ImageMetadata{
-		Filename:    filename,
+		Filename:    "images/" + filename,
 		Width:       config.Width,
 		Height:      config.Height,
 		AspectRatio: aspectRatio,

@@ -1,3 +1,12 @@
+# CloudFront Function to append .html to clean URLs
+resource "aws_cloudfront_function" "url_rewrite" {
+  name    = "${var.app_name}-url-rewrite"
+  runtime = "cloudfront-js-1.0"
+  comment = "Append .html extension to clean URLs"
+  publish = true
+  code    = file("${path.module}/cloudfront-function.js")
+}
+
 # CloudFront distribution for caching and HTTPS
 resource "aws_cloudfront_distribution" "app_distribution" {
   enabled             = true
@@ -50,6 +59,12 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     default_ttl            = 86400
     max_ttl                = 31536000
     compress               = true
+
+    # Attach CloudFront Function for URL rewriting
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.url_rewrite.arn
+    }
   }
 
   # API behavior - route to API Gateway

@@ -64,6 +64,7 @@ static-deploy: static-build
 	@echo "Uploading HTML files to S3..."
 	@aws s3 cp dist/index.html s3://$(S3_BUCKET)/index.html --acl public-read --content-type "text/html"
 	@aws s3 cp dist/venue.html s3://$(S3_BUCKET)/venue.html --acl public-read --content-type "text/html"
+	@aws s3 cp dist/gallery.html s3://$(S3_BUCKET)/gallery.html --acl public-read --content-type "text/html"
 	@echo "Uploading static assets to S3..."
 	@aws s3 sync dist/css s3://$(S3_BUCKET)/static/css/ --acl public-read
 	@aws s3 sync dist/js s3://$(S3_BUCKET)/static/js/ --acl public-read
