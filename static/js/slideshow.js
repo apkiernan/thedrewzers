@@ -3,33 +3,35 @@
 
   // Configuration
   const CONFIG = {
-    slideDuration: 5000, // 5 seconds per slide
-    fadeDuration: 1200, // 1.2 seconds fade transition
-    initialDelay: 3000, // 3 seconds before starting slideshow
-    preloadCount: 3, // Number of images to preload immediately
+    autoplayDuration: 5000, // 5 seconds per slide
+    transitionDuration: 700, // 0.7 seconds slide transition
+    initialDelay: 3000, // 3 seconds before starting autoplay
     resumeDelay: 2000, // Auto-resume after 2 seconds of no interaction
-    totalSlides: 7, // Total number of slides
-    totalDots: 7, // Number of progress dots
+    totalSlides: 6, // Total number of original slides (hero-02 through hero-07)
+    cloneCount: 3, // Number of clones on each side for infinite scroll
   };
 
   // State
-  let currentSlide = 0;
-  let slideshowTimer = null;
+  let currentIndex = CONFIG.cloneCount + 2; // Start at hero-04.jpg (her favorite!)
+  let realCurrentSlide = 2; // The actual slide index (0-5, hero-04.jpg is index 2)
+  let autoplayTimer = null;
   let resumeTimer = null;
   let isPaused = false;
   let isInitialized = false;
   let prefersReducedMotion = false;
+  let isTransitioning = false;
 
   // DOM Elements
   let container = null;
-  let slides = [];
+  let track = null;
+  let originalSlides = [];
+  let allSlides = []; // Including clones
   let dots = [];
   let prevButton = null;
   let nextButton = null;
-  let loadedImages = new Set();
 
   /**
-   * Initialize the slideshow
+   * Initialize the carousel with infinite scroll
    */
   function init() {
     if (isInitialized) return;
@@ -39,46 +41,71 @@
     prefersReducedMotion = motionQuery.matches;
 
     // Get DOM elements
-    container = document.querySelector(".slideshow-container");
+    container = document.querySelector(".carousel-container");
     if (!container) {
-      console.warn("Slideshow container not found");
+      console.warn("Carousel container not found");
       return;
     }
 
-    slides = Array.from(container.querySelectorAll(".slideshow-image"));
-    dots = Array.from(container.querySelectorAll(".slideshow-dot"));
-    prevButton = container.querySelector(".slideshow-prev");
-    nextButton = container.querySelector(".slideshow-next");
+    track = container.querySelector(".carousel-track");
+    originalSlides = Array.from(container.querySelectorAll(".carousel-slide"));
+    dots = Array.from(container.querySelectorAll(".carousel-dot"));
+    prevButton = container.querySelector(".carousel-prev");
+    nextButton = container.querySelector(".carousel-next");
 
-    if (slides.length === 0) {
-      console.warn("No slideshow images found");
+    if (originalSlides.length === 0) {
+      console.warn("No carousel slides found");
       return;
     }
 
-    // Mark first image as loaded (it's already in the HTML)
-    loadedImages.add(0);
+    // Create clones for infinite scroll
+    createClones();
 
     // Set up event listeners
     setupEventListeners();
 
-    // Preload priority images
-    preloadPriorityImages();
+    // Initialize first slide
+    goToSlide(currentIndex, true);
 
-    // Start slideshow after initial delay (unless reduced motion)
+    // Start autoplay after initial delay (unless reduced motion)
     if (!prefersReducedMotion) {
       setTimeout(() => {
-        startSlideshow();
+        startAutoplay();
       }, CONFIG.initialDelay);
     }
 
-    // Background preload remaining images
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(() => preloadRemainingImages());
-    } else {
-      setTimeout(() => preloadRemainingImages(), 5000);
+    isInitialized = true;
+  }
+
+  /**
+   * Create clones at the beginning and end for infinite scroll
+   */
+  function createClones() {
+    const fragment = document.createDocumentFragment();
+
+    // Clone last few slides and prepend to beginning
+    for (let i = CONFIG.totalSlides - CONFIG.cloneCount; i < CONFIG.totalSlides; i++) {
+      const clone = originalSlides[i].cloneNode(true);
+      clone.classList.add("clone");
+      clone.setAttribute("aria-hidden", "true");
+      fragment.appendChild(clone);
     }
 
-    isInitialized = true;
+    // Insert clones at the beginning
+    track.insertBefore(fragment, track.firstChild);
+
+    // Clone first few slides and append to end
+    const endFragment = document.createDocumentFragment();
+    for (let i = 0; i < CONFIG.cloneCount; i++) {
+      const clone = originalSlides[i].cloneNode(true);
+      clone.classList.add("clone");
+      clone.setAttribute("aria-hidden", "true");
+      endFragment.appendChild(clone);
+    }
+    track.appendChild(endFragment);
+
+    // Update allSlides to include clones
+    allSlides = Array.from(track.querySelectorAll(".carousel-slide"));
   }
 
   /**
@@ -88,105 +115,102 @@
     // Navigation buttons
     if (prevButton) {
       prevButton.addEventListener("click", () => {
-        pauseSlideshow();
+        if (isTransitioning) return;
+        pauseAutoplay();
         previousSlide();
-        resumeSlideshow();
+        resumeAutoplay();
       });
     }
 
     if (nextButton) {
       nextButton.addEventListener("click", () => {
-        pauseSlideshow();
+        if (isTransitioning) return;
+        pauseAutoplay();
         nextSlide();
-        resumeSlideshow();
+        resumeAutoplay();
       });
     }
 
     // Dot navigation
     dots.forEach((dot, index) => {
-      dot.addEventListener("click", () => handleDotClick(index));
+      dot.addEventListener("click", () => {
+        if (isTransitioning) return;
+        pauseAutoplay();
+        // Jump to the real slide (accounting for clones at the beginning)
+        goToSlide(CONFIG.cloneCount + index);
+        resumeAutoplay();
+      });
     });
 
     // Keyboard navigation
     container.addEventListener("keydown", handleKeyPress);
 
     // Hover pause (desktop)
-    container.addEventListener("mouseenter", () => pauseSlideshow(true));
-    container.addEventListener("mouseleave", () => resumeSlideshow());
+    container.addEventListener("mouseenter", () => pauseAutoplay(true));
+    container.addEventListener("mouseleave", () => resumeAutoplay());
 
     // Listen for motion preference changes
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     motionQuery.addEventListener("change", (e) => {
       prefersReducedMotion = e.matches;
       if (prefersReducedMotion && !isPaused) {
-        stopSlideshow();
+        stopAutoplay();
       }
     });
+
+    // Resize handler to recalculate positioning
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        goToSlide(currentIndex, true);
+      }, 150);
+    });
+
+    // Listen for transition end to handle clone jumps
+    track.addEventListener("transitionend", handleTransitionEnd);
   }
 
   /**
-   * Preload priority images (next 3)
+   * Handle transition end for infinite scroll jump
    */
-  function preloadPriorityImages() {
-    for (let i = 1; i <= CONFIG.preloadCount && i < slides.length; i++) {
-      preloadImage(i);
+  function handleTransitionEnd(e) {
+    if (e.target !== track) return;
+
+    isTransitioning = false;
+
+    // Check if we're at a clone and need to jump to real slide
+    if (currentIndex < CONFIG.cloneCount) {
+      // We're in the cloned beginning, jump to the real end
+      const realIndex = CONFIG.totalSlides + currentIndex;
+      currentIndex = realIndex;
+      goToSlide(currentIndex, true);
+    } else if (currentIndex >= CONFIG.cloneCount + CONFIG.totalSlides) {
+      // We're in the cloned end, jump to the real beginning
+      const realIndex = currentIndex - CONFIG.totalSlides;
+      currentIndex = realIndex;
+      goToSlide(currentIndex, true);
     }
   }
 
   /**
-   * Preload remaining images in background
+   * Start autoplay
    */
-  function preloadRemainingImages() {
-    for (let i = CONFIG.preloadCount + 1; i < slides.length; i++) {
-      if (!loadedImages.has(i)) {
-        preloadImage(i);
-        // Small delay between each preload to avoid blocking
-        if (i % 5 === 0 && "requestIdleCallback" in window) {
-          requestIdleCallback(() => {});
-        }
-      }
-    }
-  }
-
-  /**
-   * Preload a specific image
-   */
-  function preloadImage(index) {
-    if (loadedImages.has(index) || index >= slides.length) return;
-
-    const img = slides[index];
-    if (!img) return;
-
-    const src = img.getAttribute("src");
-    if (src && !img.complete) {
-      const preloader = new Image();
-      preloader.src = src;
-      preloader.onload = () => {
-        loadedImages.add(index);
-      };
-    } else {
-      loadedImages.add(index);
-    }
-  }
-
-  /**
-   * Start the slideshow
-   */
-  function startSlideshow() {
+  function startAutoplay() {
     if (isPaused || prefersReducedMotion) return;
 
-    slideshowTimer = setInterval(() => {
+    autoplayTimer = setInterval(() => {
       nextSlide();
-    }, CONFIG.slideDuration);
+    }, CONFIG.autoplayDuration);
   }
 
   /**
-   * Stop the slideshow
+   * Stop autoplay
    */
-  function stopSlideshow() {
-    if (slideshowTimer) {
-      clearInterval(slideshowTimer);
-      slideshowTimer = null;
+  function stopAutoplay() {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
     }
     if (resumeTimer) {
       clearTimeout(resumeTimer);
@@ -195,13 +219,13 @@
   }
 
   /**
-   * Pause the slideshow
+   * Pause autoplay
    */
-  function pauseSlideshow(clearResume = false) {
+  function pauseAutoplay(clearResume = false) {
     if (isPaused) return;
 
     isPaused = true;
-    stopSlideshow();
+    stopAutoplay();
 
     if (clearResume && resumeTimer) {
       clearTimeout(resumeTimer);
@@ -210,9 +234,9 @@
   }
 
   /**
-   * Resume the slideshow
+   * Resume autoplay
    */
-  function resumeSlideshow() {
+  function resumeAutoplay() {
     if (!isPaused || prefersReducedMotion) return;
 
     // Clear any existing resume timer
@@ -223,7 +247,7 @@
     // Set up auto-resume after delay
     resumeTimer = setTimeout(() => {
       isPaused = false;
-      startSlideshow();
+      startAutoplay();
     }, CONFIG.resumeDelay);
   }
 
@@ -231,53 +255,99 @@
    * Go to next slide
    */
   function nextSlide() {
-    const nextIndex = (currentSlide + 1) % slides.length;
-    goToSlide(nextIndex);
+    if (isTransitioning) return;
+    goToSlide(currentIndex + 1);
   }
 
   /**
    * Go to previous slide
    */
   function previousSlide() {
-    const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
-    goToSlide(prevIndex);
+    if (isTransitioning) return;
+    goToSlide(currentIndex - 1);
   }
 
   /**
    * Go to specific slide
    */
-  function goToSlide(index) {
-    if (index === currentSlide || index < 0 || index >= slides.length) return;
+  function goToSlide(slideIndex, skipTransition = false) {
+    if (slideIndex === currentIndex && !skipTransition) return;
 
-    // Preload next few images if not already loaded
-    for (let i = 1; i <= 3; i++) {
-      const nextIndex = (index + i) % slides.length;
-      preloadImage(nextIndex);
+    currentIndex = slideIndex;
+
+    // Calculate the real slide index (0-6) for dot indicators
+    let tempIndex = currentIndex - CONFIG.cloneCount;
+    if (tempIndex < 0) {
+      tempIndex = CONFIG.totalSlides + tempIndex;
+    } else if (tempIndex >= CONFIG.totalSlides) {
+      tempIndex = tempIndex - CONFIG.totalSlides;
+    }
+    realCurrentSlide = tempIndex;
+
+    // Remove active class from all slides
+    allSlides.forEach(slide => slide.classList.remove("active"));
+
+    // Add active class to current slide
+    if (allSlides[currentIndex]) {
+      allSlides[currentIndex].classList.add("active");
     }
 
-    // Update slide classes
-    slides[currentSlide].classList.remove("active", "fade-in");
-    slides[index].classList.add("active", "fade-in");
+    // Calculate the offset to center the current slide
+    // Account for container padding and calculate true center
 
-    // Update dot indicators
-    updateDots(index);
+    // Get container's total width
+    const containerWidth = container.offsetWidth;
 
-    // Update ARIA live region for screen readers
-    updateAriaLiveRegion(index);
+    // Get container padding (80px on each side from CSS)
+    const containerStyle = window.getComputedStyle(container);
+    const paddingLeft = parseFloat(containerStyle.paddingLeft);
+    const paddingRight = parseFloat(containerStyle.paddingRight);
 
-    currentSlide = index;
+    // The actual content area where slides live
+    const contentWidth = containerWidth - paddingLeft - paddingRight;
+
+    // Get the actual rendered width of a slide (50% of content area)
+    const slideElement = allSlides[currentIndex];
+    const slideWidth = slideElement.offsetWidth;
+
+    // Calculate the natural left edge of this slide within the content area
+    const slideNaturalLeft = currentIndex * slideWidth;
+
+    // Center point of the slide within the track
+    const slideNaturalCenter = slideNaturalLeft + (slideWidth / 2);
+
+    // Center of the content area (where we want the slide centered)
+    const contentCenter = contentWidth / 2;
+
+    // How much to translate to center the slide
+    const offset = contentCenter - slideNaturalCenter;
+
+    // Apply transform
+    if (skipTransition) {
+      track.style.transition = "none";
+      track.style.transform = `translateX(${offset}px)`;
+      // Force reflow
+      track.offsetHeight;
+      track.style.transition = "";
+      isTransitioning = false;
+    } else {
+      isTransitioning = true;
+      track.style.transform = `translateX(${offset}px)`;
+    }
+
+    // Update dot indicators (based on real slide index)
+    updateDots(realCurrentSlide);
+
+    // Update ARIA
+    updateAriaLiveRegion(realCurrentSlide);
   }
 
   /**
    * Update dot indicators
    */
   function updateDots(slideIndex) {
-    // Calculate which dot should be active (each dot represents ~5 slides)
-    const slidesPerDot = Math.ceil(CONFIG.totalSlides / CONFIG.totalDots);
-    const activeDotIndex = Math.floor(slideIndex / slidesPerDot);
-
     dots.forEach((dot, index) => {
-      if (index === activeDotIndex) {
+      if (index === slideIndex) {
         dot.classList.add("active");
         dot.setAttribute("aria-selected", "true");
       } else {
@@ -288,51 +358,40 @@
   }
 
   /**
-   * Handle dot click
-   */
-  function handleDotClick(dotIndex) {
-    // Each dot jumps to a set of slides
-    const slidesPerDot = Math.ceil(CONFIG.totalSlides / CONFIG.totalDots);
-    const targetSlide = dotIndex * slidesPerDot;
-
-    pauseSlideshow();
-    goToSlide(targetSlide);
-    resumeSlideshow();
-  }
-
-  /**
    * Handle keyboard navigation
    */
   function handleKeyPress(event) {
+    if (isTransitioning) return;
+
     switch (event.key) {
       case " ":
       case "Enter":
         event.preventDefault();
         if (isPaused) {
           isPaused = false;
-          startSlideshow();
+          startAutoplay();
         } else {
-          pauseSlideshow(true);
+          pauseAutoplay(true);
         }
         break;
 
       case "ArrowLeft":
         event.preventDefault();
-        pauseSlideshow();
+        pauseAutoplay();
         previousSlide();
-        resumeSlideshow();
+        resumeAutoplay();
         break;
 
       case "ArrowRight":
         event.preventDefault();
-        pauseSlideshow();
+        pauseAutoplay();
         nextSlide();
-        resumeSlideshow();
+        resumeAutoplay();
         break;
 
       case "Escape":
         event.preventDefault();
-        pauseSlideshow(true);
+        pauseAutoplay(true);
         break;
     }
   }
@@ -340,18 +399,20 @@
   /**
    * Update ARIA live region for screen readers
    */
-  function updateAriaLiveRegion() {
-    let liveRegion = document.getElementById("slideshow-live-region");
+  function updateAriaLiveRegion(slideIndex) {
+    let liveRegion = document.getElementById("carousel-live-region");
 
     if (!liveRegion) {
       liveRegion = document.createElement("div");
-      liveRegion.id = "slideshow-live-region";
+      liveRegion.id = "carousel-live-region";
       liveRegion.className = "sr-only";
       liveRegion.setAttribute("role", "status");
       liveRegion.setAttribute("aria-live", "polite");
       liveRegion.setAttribute("aria-atomic", "true");
       document.body.appendChild(liveRegion);
     }
+
+    liveRegion.textContent = `Photo ${slideIndex + 1} of ${CONFIG.totalSlides}`;
   }
 
   // Initialize when DOM is ready

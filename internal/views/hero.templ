@@ -29,38 +29,41 @@ templ HeroSection() {
 				</ul>
 			</div>
 		</nav>
-		// Hero slideshow
+		// Hero carousel
 		<div class="flex-1 flex items-center justify-center px-6 py-12">
-			<div class="max-w-4xl w-full">
-				<div class="slideshow-container relative" role="region" aria-label="Engagement photo slideshow" tabindex="0">
+			<div class="max-w-6xl w-full">
+				<div class="carousel-container relative overflow-hidden" role="region" aria-label="Engagement photo carousel" tabindex="0">
 					// Previous button
-					<button class="slideshow-nav-btn slideshow-prev" aria-label="Previous photo">
+					<button class="carousel-nav-btn carousel-prev" aria-label="Previous photos">
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
 						</svg>
 					</button>
 					// Next button
-					<button class="slideshow-nav-btn slideshow-next" aria-label="Next photo">
+					<button class="carousel-nav-btn carousel-next" aria-label="Next photos">
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
 						</svg>
 					</button>
-					for i := 1; i <= 7; i++ {
-						<img
-							src={ fmt.Sprintf("/static/images/slideshow/hero-%02d.jpg", i) }
-							alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 7", i) }
-							class={ "slideshow-image w-full h-auto", templ.KV("active", i == 1) }
-							style="max-height: 600px; object-fit: contain;"
-							data-slide-index={ fmt.Sprintf("%d", i-1) }
-						/>
-					}
-					<div class="slideshow-dots flex justify-center mt-6 gap-2" role="tablist" aria-label="Photo navigation">
-						for i := 1; i <= 7; i++ {
+					<div class="carousel-track flex transition-transform duration-700 ease-out">
+						for i := 2; i <= 7; i++ {
+							<div class="carousel-slide flex-shrink-0 px-2" data-slide-index={ fmt.Sprintf("%d", i-2) }>
+								<img
+									src={ fmt.Sprintf("/static/images/slideshow/hero-%02d.jpg", i) }
+									alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 6", i-1) }
+									class="w-full h-auto rounded-lg shadow-lg"
+									style="max-height: 500px; object-fit: cover;"
+								/>
+							</div>
+						}
+					</div>
+					<div class="carousel-dots flex justify-center mt-6 gap-2" role="tablist" aria-label="Photo navigation">
+						for i := 1; i <= 6; i++ {
 							<button
-								class={ "slideshow-dot w-2 h-2 rounded-full transition-all", templ.KV("active", i == 1) }
+								class={ "carousel-dot w-2 h-2 rounded-full transition-all", templ.KV("active", i == 3) }
 								role="tab"
 								aria-label={ fmt.Sprintf("View photo %d", i) }
-								if i == 1 {
+								if i == 3 {
 									aria-selected="true"
 								} else {
 									aria-selected="false"
