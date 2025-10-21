@@ -8,8 +8,8 @@
     initialDelay: 3000, // 3 seconds before starting slideshow
     preloadCount: 3, // Number of images to preload immediately
     resumeDelay: 2000, // Auto-resume after 2 seconds of no interaction
-    totalSlides: 40, // Total number of slides
-    totalDots: 8, // Number of progress dots
+    totalSlides: 7, // Total number of slides
+    totalDots: 7, // Number of progress dots
   };
 
   // State

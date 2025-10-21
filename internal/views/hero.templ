@@ -45,21 +45,21 @@ templ HeroSection() {
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
 						</svg>
 					</button>
-					for i := 1; i <= 40; i++ {
+					for i := 1; i <= 7; i++ {
 						<img
 							src={ fmt.Sprintf("/static/images/slideshow/hero-%02d.jpg", i) }
-							alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 40", i) }
+							alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 7", i) }
 							class={ "slideshow-image w-full h-auto", templ.KV("active", i == 1) }
 							style="max-height: 600px; object-fit: contain;"
 							data-slide-index={ fmt.Sprintf("%d", i-1) }
 						/>
 					}
 					<div class="slideshow-dots flex justify-center mt-6 gap-2" role="tablist" aria-label="Photo navigation">
-						for i := 1; i <= 8; i++ {
+						for i := 1; i <= 7; i++ {
 							<button
 								class={ "slideshow-dot w-2 h-2 rounded-full transition-all", templ.KV("active", i == 1) }
 								role="tab"
-								aria-label={ fmt.Sprintf("View photos %d-%d", (i-1)*5+1, i*5) }
+								aria-label={ fmt.Sprintf("View photo %d", i) }
 								if i == 1 {
 									aria-selected="true"
 								} else {

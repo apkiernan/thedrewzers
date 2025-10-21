@@ -2,14 +2,23 @@ package views
 
 import "fmt"
 
-templ GalleryPage() {
+// ImageMetadata represents metadata for a gallery image
+type ImageMetadata struct {
+	Filename    string
+	Width       int
+	Height      int
+	AspectRatio float64
+	GridRowSpan int
+}
+
+templ GalleryPage(images []ImageMetadata) {
 	<div class="min-h-screen bg-white">
 		// Header
 		<header class="bg-pattern-subtle py-16">
 			<div class="max-w-7xl mx-auto px-6">
 				<div class="text-center">
 					<h1 class="script text-6xl md:text-8xl text-blue-300 font-extralight mb-4">Our Gallery</h1>
-					<p class="text-gray-600 text-lg">Engagement Photos</p>
+					<p class="text-gray-600 text-lg">Engagement Photos ({ fmt.Sprintf("%d", len(images)) } photos)</p>
 					<div class="mt-8">
 						<a href="/" class="text-blue-300 hover:text-blue-400 transition-colors underline">← Back to Home</a>
 					</div>
@@ -19,23 +28,12 @@ templ GalleryPage() {
 		// Gallery Grid - Masonry Layout
 		<div class="max-w-7xl mx-auto px-6 py-16">
 			<div id="gallery-masonry" class="gallery-masonry">
-				// First photo (no number)
-				<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-2xl transition-all duration-500 opacity-0 gallery-item-animate cursor-pointer" data-index="0" role="button" tabindex="0" aria-label="View photo 1 in full size">
-					<img
-						src="/static/molly_andrewENG.jpg"
-						alt="Engagement photo 1"
-						class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-						loading="lazy"
-					/>
-					<div class="gallery-overlay absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-6">
-					</div>
-				</div>
-				// Numbered photos (2-263)
-				for i := 2; i <= 263; i++ {
-					<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-2xl transition-all duration-500 opacity-0 gallery-item-animate cursor-pointer" data-index={ fmt.Sprintf("%d", i-1) } role="button" tabindex="0" aria-label={ fmt.Sprintf("View photo %d in full size", i) }>
+				// Iterate over actual images from metadata
+				for i, image := range images {
+					<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-2xl transition-all duration-500 opacity-0 gallery-item-animate cursor-pointer" data-index={ fmt.Sprintf("%d", i) } role="button" tabindex="0" aria-label={ fmt.Sprintf("View photo %d in full size", i+1) }>
 						<img
-							src={ fmt.Sprintf("/static/molly_andrewENG-%d.jpg", i) }
-							alt={ fmt.Sprintf("Engagement photo %d", i) }
+							src={ fmt.Sprintf("/static/%s", image.Filename) }
+							alt={ fmt.Sprintf("Engagement photo %d", i+1) }
 							class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
 							loading="lazy"
 						/>

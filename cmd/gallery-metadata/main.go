@@ -8,6 +8,9 @@ import (
 	_ "image/png"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 // ImageMetadata represents metadata for a gallery image
@@ -23,21 +26,34 @@ func main() {
 	staticDir := "static"
 	var images []ImageMetadata
 
-	// Process first image (no number)
-	fmt.Println("Processing molly_andrewENG.jpg...")
-	if metadata, err := processImage(filepath.Join(staticDir, "molly_andrewENG.jpg")); err == nil {
-		images = append(images, metadata)
-	} else {
-		fmt.Printf("Warning: Failed to process molly_andrewENG.jpg: %v\n", err)
+	// Scan directory for all molly_andrewENG*.jpg files
+	pattern := filepath.Join(staticDir, "molly_andrewENG*.jpg")
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		fmt.Printf("Error scanning for images: %v\n", err)
+		os.Exit(1)
 	}
 
-	// Process numbered images (2-263)
-	for i := 2; i <= 263; i++ {
-		filename := fmt.Sprintf("molly_andrewENG-%d.jpg", i)
-		path := filepath.Join(staticDir, filename)
+	if len(matches) == 0 {
+		fmt.Printf("Warning: No images found matching pattern: %s\n", pattern)
+		os.Exit(1)
+	}
 
-		if i%50 == 0 {
-			fmt.Printf("Processing image %d/263...\n", i)
+	fmt.Printf("Found %d images to process...\n", len(matches))
+
+	// Sort matches numerically by the number in the filename
+	sort.Slice(matches, func(i, j int) bool {
+		numI := extractNumber(matches[i])
+		numJ := extractNumber(matches[j])
+		return numI < numJ
+	})
+
+	// Process each image found
+	for i, path := range matches {
+		filename := filepath.Base(path)
+
+		if (i+1)%10 == 0 {
+			fmt.Printf("Processing image %d/%d...\n", i+1, len(matches))
 		}
 
 		if metadata, err := processImage(path); err == nil {
@@ -116,4 +132,21 @@ func processImage(path string) (ImageMetadata, error) {
 		AspectRatio: aspectRatio,
 		GridRowSpan: gridRowSpan,
 	}, nil
+}
+
+// extractNumber extracts the numeric part from a filename like "molly_andrewENG-123.jpg"
+func extractNumber(path string) int {
+	filename := filepath.Base(path)
+	// Remove extension
+	filename = strings.TrimSuffix(filename, ".jpg")
+	// Split by dash to get the number part
+	parts := strings.Split(filename, "-")
+	if len(parts) < 2 {
+		return 0
+	}
+	num, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		return 0
+	}
+	return num
 }
