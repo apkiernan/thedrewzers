@@ -3,6 +3,16 @@
   src: url("../fonts/BonheurRoyale-Regular.ttf");
 }
 
+/* Prevent horizontal scrolling on all pages */
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 
 /* Background applied to index-view instead of body */
 .index-view {
@@ -192,8 +202,8 @@
 
 /* Lightbox image */
 .lightbox-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 90%;
+  max-height: 90%;
   object-fit: contain;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: center center;
@@ -380,17 +390,17 @@
 
   .lightbox-zoom-in {
     right: 110px;
-    bottom: 100px;
+    bottom: 160px;
   }
 
   .lightbox-zoom-out {
     right: 60px;
-    bottom: 100px;
+    bottom: 160px;
   }
 
   .lightbox-zoom-reset {
     right: 10px;
-    bottom: 100px;
+    bottom: 160px;
   }
 
   .lightbox-zoom-in:active,
