@@ -51,3 +51,500 @@
   display: block;
   clip-path: circle(50% at 50% 50%);
 }
+
+/* ===================================
+   Gallery Masonry Layout
+   =================================== */
+
+/* Masonry container */
+.gallery-masonry {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+}
+
+/* Individual gallery items */
+.gallery-item {
+  cursor: pointer;
+  will-change: transform, opacity;
+  /* Smooth fade-in for initial load */
+  transition:
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-item:hover {
+  z-index: 10;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced hover effect with subtle 3D lift on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .gallery-item {
+    transform-style: preserve-3d;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+/* Overlay enhancements */
+.gallery-overlay {
+  backdrop-filter: blur(8px);
+}
+
+/* Smooth image transitions */
+.gallery-item img {
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Focus state for accessibility */
+.gallery-item:focus-visible {
+  outline: 3px solid #93C5FD; /* blue-300 */
+  outline-offset: 4px;
+  border-radius: 0.5rem;
+}
+
+/* Loading skeleton (optional for progressive enhancement) */
+.gallery-item.loading {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .gallery-item,
+  .gallery-item img,
+  .gallery-overlay {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .gallery-item-animate {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .gallery-item:hover {
+    /* Reduce hover effect intensity on mobile */
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+/* ===================================
+   Lightbox Viewer
+   =================================== */
+
+/* Lightbox container */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.lightbox-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Backdrop */
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Content container */
+.lightbox-content {
+  position: relative;
+  width: 90vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Lightbox image */
+.lightbox-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.lightbox-image.loading {
+  opacity: 0.3;
+}
+
+/* Controls container */
+.lightbox-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Control buttons base styles */
+.lightbox-controls button {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.lightbox-controls button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Close button */
+.lightbox-close {
+  top: 20px;
+  right: 20px;
+}
+
+.lightbox-close:hover {
+  transform: scale(1.1);
+}
+
+.lightbox-close:active {
+  transform: scale(0.98);
+}
+
+/* Navigation buttons */
+.lightbox-prev {
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-prev:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-prev:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.lightbox-next {
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-next:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-next:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+/* Photo counter */
+.lightbox-counter {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: auto;
+}
+
+.lightbox-counter-separator {
+  margin: 0 8px;
+  opacity: 0.6;
+}
+
+/* Zoom controls */
+.lightbox-zoom-in,
+.lightbox-zoom-out,
+.lightbox-zoom-reset {
+  width: 40px;
+  height: 40px;
+  bottom: 30px;
+}
+
+.lightbox-zoom-in {
+  right: 130px;
+}
+
+.lightbox-zoom-out {
+  right: 80px;
+}
+
+.lightbox-zoom-reset {
+  right: 30px;
+}
+
+.lightbox-zoom-in:hover,
+.lightbox-zoom-out:hover,
+.lightbox-zoom-reset:hover {
+  transform: scale(1.1);
+}
+
+.lightbox-zoom-in:active,
+.lightbox-zoom-out:active,
+.lightbox-zoom-reset:active {
+  transform: scale(0.98);
+}
+
+/* Focus states for accessibility */
+.lightbox-controls button:focus-visible {
+  outline: 3px solid #93C5FD;
+  outline-offset: 4px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .lightbox-content {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .lightbox-controls button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .lightbox-prev,
+  .lightbox-next {
+    top: auto;
+    bottom: 100px;
+    transform: none;
+  }
+
+  .lightbox-prev {
+    left: 20px;
+  }
+
+  .lightbox-next {
+    right: 20px;
+  }
+
+  .lightbox-prev:hover,
+  .lightbox-next:hover {
+    transform: scale(1.1);
+  }
+
+  .lightbox-prev:active,
+  .lightbox-next:active {
+    transform: scale(0.98);
+  }
+
+  .lightbox-zoom-in {
+    right: 110px;
+    bottom: 100px;
+  }
+
+  .lightbox-zoom-out {
+    right: 60px;
+    bottom: 100px;
+  }
+
+  .lightbox-zoom-reset {
+    right: 10px;
+    bottom: 100px;
+  }
+
+  .lightbox-zoom-in:active,
+  .lightbox-zoom-out:active,
+  .lightbox-zoom-reset:active {
+    transform: scale(0.98);
+  }
+
+  .lightbox-counter {
+    bottom: 30px;
+  }
+}
+
+/* Animations */
+@keyframes lightbox-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lightbox-open .lightbox-image {
+  animation: lightbox-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .lightbox,
+  .lightbox-image,
+  .lightbox-controls button {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ===================================
+   3D Flip Cards for Wedding Details
+   =================================== */
+
+/* Container provides perspective for 3D effect */
+.flip-card-container {
+  perspective: 1000px;
+  height: 320px;
+  cursor: pointer;
+}
+
+/* The card itself with 3D transform */
+.flip-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Flipped state */
+.flip-card-container.flipped .flip-card {
+  transform: rotateY(180deg);
+}
+
+/* Front and back faces */
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Front face styling */
+.flip-card-front {
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Back face styling (rotated 180deg initially) */
+.flip-card-back {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Content padding */
+.flip-card-content {
+  padding: 2rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hover effect - subtle lift and enhanced shadow */
+.flip-card-container:hover .flip-card-front,
+.flip-card-container:hover .flip-card-back {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 3D tilt effect on desktop (mouse movement) */
+@media (hover: hover) and (pointer: fine) {
+  .flip-card-container {
+    transform-style: preserve-3d;
+  }
+
+  .flip-card-container:hover {
+    /* Subtle scale on hover */
+    transform: scale(1.02);
+    transition: transform 0.3s ease;
+  }
+}
+
+/* Focus state for accessibility */
+.flip-card-container:focus-visible {
+  outline: 3px solid #93C5FD;
+  outline-offset: 4px;
+  border-radius: 1rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .flip-card-container {
+    height: 280px;
+  }
+
+  .flip-card-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .flip-card {
+    transition: none !important;
+  }
+
+  .flip-card-container.flipped .flip-card {
+    /* Still flip, but instantly */
+    transition: none;
+  }
+
+  .flip-card-container:hover {
+    transform: none;
+  }
+}

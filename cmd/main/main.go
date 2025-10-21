@@ -16,5 +16,8 @@ func main() {
 	server.HandleFunc("GET /gallery", handlers.HandleGalleryPage)
 
 	fmt.Println("Server started on port 8080")
-	http.ListenAndServe(":8080", server)
+	if err := http.ListenAndServe(":8080", server); err != nil {
+		fmt.Printf("Server failed to start: %v\n", err)
+		panic(err)
+	}
 }

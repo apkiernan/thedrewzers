@@ -340,7 +340,7 @@
   /**
    * Update ARIA live region for screen readers
    */
-  function updateAriaLiveRegion(index) {
+  function updateAriaLiveRegion() {
     let liveRegion = document.getElementById("slideshow-live-region");
 
     if (!liveRegion) {
@@ -352,8 +352,6 @@
       liveRegion.setAttribute("aria-atomic", "true");
       document.body.appendChild(liveRegion);
     }
-
-    liveRegion.textContent = `Photo ${index + 1} of ${CONFIG.totalSlides}`;
   }
 
   // Initialize when DOM is ready

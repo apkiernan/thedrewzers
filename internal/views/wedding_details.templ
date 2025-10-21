@@ -4,34 +4,94 @@ templ WeddingDetailsSection() {
 	<section id="details" class="py-16 bg-pattern-subtle relative">
 		<div class="max-w-4xl mx-auto px-6 text-center">
 			<h2 class="script text-5xl md:text-6xl text-blue-300 mb-16 font-extralight">Details</h2>
+
+			<!-- 3D Flip Cards -->
 			<div class="grid md:grid-cols-2 gap-16 mb-20">
-				<div>
-					<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Ceremony</h3>
-					<p class="text-gray-500 leading-relaxed">
-						5:30 PM
-						<br/>
-						The Tower Library
-						<br/>
-						101 Arlington Street
-						<br/>
-						Boston, MA 02116
-					</p>
+				<!-- Ceremony Card -->
+				<div class="flip-card-container" data-card="ceremony">
+					<div class="flip-card">
+						<!-- Front of Card -->
+						<div class="flip-card-front">
+							<div class="flip-card-content">
+								<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Ceremony</h3>
+								<div class="text-gray-500 leading-relaxed mb-4">
+									<p class="text-2xl font-light mb-4">5:30 PM</p>
+									<p class="text-lg">The Tower Library</p>
+								</div>
+								<div class="mt-6 text-blue-300 text-sm tracking-wide">
+									<p>Tap for details →</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Back of Card -->
+						<div class="flip-card-back">
+							<div class="flip-card-content">
+								<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Ceremony Location</h3>
+								<div class="text-gray-500 leading-relaxed">
+									<p class="mb-2"><strong>The Tower Library</strong></p>
+									<p class="mb-2">101 Arlington Street</p>
+									<p class="mb-4">Boston, MA 02116</p>
+									<a
+										href="https://maps.google.com/?q=The+Tower+Library,101+Arlington+Street,Boston,MA+02116"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-block mt-4 px-6 py-2 bg-blue-300 text-white rounded-full hover:bg-blue-400 transition-colors"
+									>
+										Get Directions
+									</a>
+								</div>
+								<div class="mt-6 text-blue-300 text-sm tracking-wide">
+									<p>← Tap to return</p>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div>
-					<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Reception</h3>
-					<p class="text-gray-500 leading-relaxed">
-						6:00 PM
-						<br/>
-						Cocktails, Dinner & Dancing
-						<br/>
-						The Tower Library
-						<br/>
-						101 Arlington Street
-						<br/>
-						Boston, MA 02116
-					</p>
+
+				<!-- Reception Card -->
+				<div class="flip-card-container" data-card="reception">
+					<div class="flip-card">
+						<!-- Front of Card -->
+						<div class="flip-card-front">
+							<div class="flip-card-content">
+								<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Reception</h3>
+								<div class="text-gray-500 leading-relaxed mb-4">
+									<p class="text-2xl font-light mb-4">6:00 PM</p>
+									<p class="text-lg">Cocktails, Dinner & Dancing</p>
+								</div>
+								<div class="mt-6 text-blue-300 text-sm tracking-wide">
+									<p>Tap for details →</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Back of Card -->
+						<div class="flip-card-back">
+							<div class="flip-card-content">
+								<h3 class="text-xl tracking-widest text-gray-600 mb-6 uppercase">Reception Location</h3>
+								<div class="text-gray-500 leading-relaxed">
+									<p class="mb-2"><strong>The Tower Parlor and Lounge</strong></p>
+									<p class="mb-2">101 Arlington Street</p>
+									<p class="mb-4">Boston, MA 02116</p>
+									<a
+										href="https://maps.google.com/?q=The+Tower+Parlor+and+Lounge,101+Arlington+Street,Boston,MA+02116"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-block mt-4 px-6 py-2 bg-blue-300 text-white rounded-full hover:bg-blue-400 transition-colors"
+									>
+										Get Directions
+									</a>
+								</div>
+								<div class="mt-6 text-blue-300 text-sm tracking-wide">
+									<p>← Tap to return</p>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
+
 			<div class="mt-16">
 				<h3 class="text-lg tracking-widest text-gray-600 mb-8 uppercase">Venue Tour</h3>
 				<div class="shadow-lg">

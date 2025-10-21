@@ -1,8 +1,8 @@
 # Development targets
-.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache
+.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata
 
 # Default development target
-all: tpl
+all: tpl gallery-metadata
 	@echo "Starting development servers..."
 	@make -j2 styles server
 
@@ -22,8 +22,13 @@ tpl:
 styles:
 	npm run watch
 
+# Generate gallery metadata
+gallery-metadata:
+	@echo "Generating gallery image metadata..."
+	@go run cmd/gallery-metadata/main.go
+
 # Build static HTML files
-static-build: tpl
+static-build: tpl gallery-metadata
 	@echo "Building static site..."
 	@go run ./cmd/build
 	@echo "Copying static assets to dist..."
@@ -99,7 +104,7 @@ invalidate-cache:
 	fi
 
 # Deploy with Terraform
-deploy: lambda-build static-deploy
+deploy: gallery-metadata lambda-build static-deploy
 	cd terraform && terraform init
 	cd terraform && terraform apply
 
