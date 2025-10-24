@@ -31,12 +31,47 @@ templ GalleryPage(images []ImageMetadata) {
 				// Iterate over actual images from metadata
 				for i, image := range images {
 					<div class="gallery-item group relative overflow-hidden rounded-lg shadow-md hover:shadow-2xl transition-all duration-500 opacity-0 gallery-item-animate cursor-pointer" data-index={ fmt.Sprintf("%d", i) } role="button" tabindex="0" aria-label={ fmt.Sprintf("View photo %d in full size", i+1) }>
-						<img
-							src={ fmt.Sprintf("/static/%s", image.Filename) }
-							alt={ fmt.Sprintf("Engagement photo %d", i+1) }
-							class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-							loading="lazy"
-						/>
+						<picture>
+							// AVIF sources (smallest, best compression)
+							<source
+								type="image/avif"
+								srcset={
+									fmt.Sprintf("/static/%s-640w.avif 640w, /static/%s-768w.avif 768w, /static/%s-1024w.avif 1024w",
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4])
+								}
+								sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+							/>
+							// WebP sources (good compression, wide support)
+							<source
+								type="image/webp"
+								srcset={
+									fmt.Sprintf("/static/%s-640w.webp 640w, /static/%s-768w.webp 768w, /static/%s-1024w.webp 1024w",
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4])
+								}
+								sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+							/>
+							// JPEG fallback with LQIP
+							<img
+								src={ fmt.Sprintf("/static/%s-lqip.jpg", image.Filename[:len(image.Filename)-4]) }
+								data-src={ fmt.Sprintf("/static/%s-1024w.jpg", image.Filename[:len(image.Filename)-4]) }
+								srcset={
+									fmt.Sprintf("/static/%s-640w.jpg 640w, /static/%s-768w.jpg 768w, /static/%s-1024w.jpg 1024w",
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4],
+										image.Filename[:len(image.Filename)-4])
+								}
+								sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+								alt={ fmt.Sprintf("Engagement photo %d", i+1) }
+								width={ fmt.Sprintf("%d", image.Width) }
+								height={ fmt.Sprintf("%d", image.Height) }
+								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 responsive-image"
+								loading="lazy"
+							/>
+						</picture>
 						<div class="gallery-overlay absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-6">
 						</div>
 					</div>

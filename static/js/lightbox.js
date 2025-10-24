@@ -237,7 +237,12 @@ export class GalleryLightbox {
    */
   loadImage(index) {
     const img = this.images[index].querySelector("img");
-    this.image.src = img.src;
+
+    // Use full-resolution image if available (data-src), otherwise use current src
+    // This ensures we show the high-quality image in the lightbox, not the LQIP
+    const imageSrc = img.dataset.src || img.src;
+
+    this.image.src = imageSrc;
     this.image.alt = img.alt;
 
     // Add loading state
@@ -265,8 +270,12 @@ export class GalleryLightbox {
     const nextIndex = (this.currentIndex + 1) % this.images.length;
 
     [prevIndex, nextIndex].forEach((index) => {
+      const galleryImg = this.images[index].querySelector("img");
+      // Preload full-resolution image if available
+      const imageSrc = galleryImg.dataset.src || galleryImg.src;
+
       const img = new Image();
-      img.src = this.images[index].querySelector("img").src;
+      img.src = imageSrc;
     });
   }
 

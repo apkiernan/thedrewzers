@@ -52,6 +52,11 @@ func main() {
 	for i, path := range matches {
 		filename := filepath.Base(path)
 
+		// Skip optimized variants (those with width suffixes like -640w or -lqip)
+		if strings.Contains(filename, "-lqip") || strings.Contains(filename, "w.jpg") {
+			continue
+		}
+
 		if (i+1)%10 == 0 {
 			fmt.Printf("Processing image %d/%d...\n", i+1, len(matches))
 		}

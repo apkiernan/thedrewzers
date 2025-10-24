@@ -36,15 +36,15 @@ class GalleryMasonry {
 
     this.calculateColumns();
 
-    // Adjust layout after images load
+    // Position all items immediately using declared dimensions (width/height attributes)
+    // This prevents layout shifts when LQIP placeholders load
     this.items.forEach((item) => {
-      const img = item.querySelector("img");
-      if (img.complete) {
-        this.handleImageLoad(item);
-      } else {
-        img.addEventListener("load", () => this.handleImageLoad(item));
-      }
+      this.positionItem(item);
+      this.imagesLoaded++;
     });
+
+    // Update gallery height after initial positioning
+    this.updateGalleryHeight();
 
     // Setup intersection observer after initial positioning
     setTimeout(() => this.setupIntersectionObserver(), 100);
@@ -173,7 +173,20 @@ class GalleryMasonry {
     const columnWidth =
       (containerWidth - this.gap * (this.columnCount - 1)) / this.columnCount;
 
-    const aspectRatio = img.naturalWidth / img.naturalHeight;
+    // Use declared width/height attributes if available (more reliable than naturalWidth/Height with LQIP)
+    // Otherwise fall back to natural dimensions
+    let aspectRatio;
+    if (img.getAttribute('width') && img.getAttribute('height')) {
+      const declaredWidth = parseInt(img.getAttribute('width'));
+      const declaredHeight = parseInt(img.getAttribute('height'));
+      aspectRatio = declaredWidth / declaredHeight;
+    } else if (img.naturalWidth && img.naturalHeight) {
+      aspectRatio = img.naturalWidth / img.naturalHeight;
+    } else {
+      // Fallback if neither available
+      aspectRatio = 1;
+    }
+
     let itemHeight = columnWidth / aspectRatio;
 
     // Add variety using pseudo-random pattern

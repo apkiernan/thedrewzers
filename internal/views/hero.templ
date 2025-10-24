@@ -48,12 +48,40 @@ templ HeroSection() {
 					<div class="carousel-track flex transition-transform duration-700 ease-out">
 						for i := 2; i <= 7; i++ {
 							<div class="carousel-slide flex-shrink-0 px-2" data-slide-index={ fmt.Sprintf("%d", i-2) }>
-								<img
-									src={ fmt.Sprintf("/static/images/slideshow/hero-%02d.jpg", i) }
-									alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 6", i-1) }
-									class="w-full h-auto rounded-lg shadow-lg"
-									style="max-height: 500px; object-fit: cover;"
-								/>
+								<picture>
+									// AVIF sources (smallest, best compression)
+									<source
+										type="image/avif"
+										srcset={
+											fmt.Sprintf("/static/images/slideshow/hero-%02d-640w.avif 640w, /static/images/slideshow/hero-%02d-768w.avif 768w, /static/images/slideshow/hero-%02d-1024w.avif 1024w",
+												i, i, i)
+										}
+										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
+									/>
+									// WebP sources (good compression, wide support)
+									<source
+										type="image/webp"
+										srcset={
+											fmt.Sprintf("/static/images/slideshow/hero-%02d-640w.webp 640w, /static/images/slideshow/hero-%02d-768w.webp 768w, /static/images/slideshow/hero-%02d-1024w.webp 1024w",
+												i, i, i)
+										}
+										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
+									/>
+									// JPEG fallback with LQIP
+									<img
+										src={ fmt.Sprintf("/static/images/slideshow/hero-%02d-lqip.jpg", i) }
+										data-src={ fmt.Sprintf("/static/images/slideshow/hero-%02d-1024w.jpg", i) }
+										srcset={
+											fmt.Sprintf("/static/images/slideshow/hero-%02d-640w.jpg 640w, /static/images/slideshow/hero-%02d-768w.jpg 768w, /static/images/slideshow/hero-%02d-1024w.jpg 1024w",
+												i, i, i)
+										}
+										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
+										alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 6", i-1) }
+										class="w-full h-auto rounded-lg shadow-lg responsive-image"
+										style="max-height: 500px; object-fit: cover;"
+										loading="lazy"
+									/>
+								</picture>
 							</div>
 						}
 					</div>

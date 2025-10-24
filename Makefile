@@ -1,10 +1,18 @@
 # Development targets
-.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata
+.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images
 
 # Default development target
-all: tpl gallery-metadata
+all: dev-build
 	@echo "Starting development servers..."
 	@make -j2 styles server
+
+# Prepare dist directory for development
+dev-build: tpl gallery-metadata optimize-images
+	@echo "Copying static assets to dist..."
+	@mkdir -p dist
+	@cp -r static/css static/js static/fonts static/data dist/ 2>/dev/null || true
+	@cp static/gallery-metadata.json dist/ 2>/dev/null || true
+	@echo "Development build complete!"
 
 # Build local development server
 build:
@@ -27,8 +35,28 @@ gallery-metadata:
 	@echo "Generating gallery image metadata..."
 	@go run cmd/gallery-metadata/main.go
 
+# Image optimization variables
+SOURCE_IMAGES=static/images
+DIST_IMAGES=dist/images
+
+# Optimize images: generate responsive sizes and modern formats
+optimize-images:
+	@echo "Creating output directory..."
+	@mkdir -p $(DIST_IMAGES)
+	@echo "Generating responsive image sizes..."
+	@go run cmd/optimize-images/main.go
+	@echo "Converting to WebP format..."
+	@find $(DIST_IMAGES) -name "*-[0-9]*w.jpg" ! -name "*-lqip.jpg" -exec sh -c \
+		'cwebp -q 85 -preset photo -m 6 "$$1" -o "$${1%.jpg}.webp" 2>/dev/null && echo "  Converted: $$(basename $${1%.jpg}.webp)"' sh {} \;
+	@echo "Converting to AVIF format..."
+	@find $(DIST_IMAGES) -name "*-[0-9]*w.jpg" ! -name "*-lqip.jpg" -exec sh -c \
+		'avifenc --min 0 --max 63 -a end-usage=q -a cq-level=18 -a tune=ssim --jobs 8 "$$1" "$${1%.jpg}.avif" 2>/dev/null && echo "  Converted: $$(basename $${1%.jpg}.avif)"' sh {} \;
+	@echo "Generating LQIP placeholders..."
+	@go run cmd/generate-lqip/main.go
+	@echo "Image optimization complete!"
+
 # Build static HTML files
-static-build: tpl gallery-metadata
+static-build: tpl optimize-images gallery-metadata
 	@echo "Building static site..."
 	@go run ./cmd/build
 	@echo "Copying static assets to dist..."
