@@ -84,10 +84,15 @@
     const fragment = document.createDocumentFragment();
 
     // Clone last few slides and prepend to beginning
-    for (let i = CONFIG.totalSlides - CONFIG.cloneCount; i < CONFIG.totalSlides; i++) {
+    for (
+      let i = CONFIG.totalSlides - CONFIG.cloneCount;
+      i < CONFIG.totalSlides;
+      i++
+    ) {
       const clone = originalSlides[i].cloneNode(true);
       clone.classList.add("clone");
       clone.setAttribute("aria-hidden", "true");
+      makeFocusableElementsNonFocusable(clone);
       fragment.appendChild(clone);
     }
 
@@ -100,12 +105,26 @@
       const clone = originalSlides[i].cloneNode(true);
       clone.classList.add("clone");
       clone.setAttribute("aria-hidden", "true");
+      makeFocusableElementsNonFocusable(clone);
       endFragment.appendChild(clone);
     }
     track.appendChild(endFragment);
 
     // Update allSlides to include clones
     allSlides = Array.from(track.querySelectorAll(".carousel-slide"));
+  }
+
+  /**
+   * Make all focusable elements within a container non-focusable
+   * This prevents aria-hidden elements from containing focusable descendants
+   */
+  function makeFocusableElementsNonFocusable(container) {
+    const focusableSelectors =
+      'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"]), img, area';
+    const focusableElements = container.querySelectorAll(focusableSelectors);
+    focusableElements.forEach((el) => {
+      el.setAttribute("tabindex", "-1");
+    });
   }
 
   /**
@@ -285,7 +304,7 @@
     realCurrentSlide = tempIndex;
 
     // Remove active class from all slides
-    allSlides.forEach(slide => slide.classList.remove("active"));
+    allSlides.forEach((slide) => slide.classList.remove("active"));
 
     // Add active class to current slide
     if (allSlides[currentIndex]) {
@@ -314,7 +333,7 @@
     const slideNaturalLeft = currentIndex * slideWidth;
 
     // Center point of the slide within the track
-    const slideNaturalCenter = slideNaturalLeft + (slideWidth / 2);
+    const slideNaturalCenter = slideNaturalLeft + slideWidth / 2;
 
     // Center of the content area (where we want the slide centered)
     const contentCenter = contentWidth / 2;

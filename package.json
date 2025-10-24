@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --minify",
     "watch": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun --config=.lighthouse/lighthouserc.json"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/apkiernan/thedrewzers#readme",
   "devDependencies": {
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.14",
+    "terser": "^5.44.0"
   }
 }

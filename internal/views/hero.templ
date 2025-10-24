@@ -19,7 +19,7 @@ templ HeroSection() {
 		<nav class="mt-16">
 			<div class="max-w-6xl mx-auto px-6">
 				<ul class="flex flex-wrap justify-center text-sm uppercase tracking-wider text-gray-500">
-					<li class="mx-4 my-2"><a href="#home" class="hover:text-gray-700 transition-colors border-b border-gray-400 pb-1">Home</a></li>
+					<li class="mx-4 my-2"><a href="#home" class="hover:text-gray-700 transition-colors border-b border-gray-500 pb-1">Home</a></li>
 					<li class="mx-4 my-2"><a href="#our-story" class="hover:text-gray-700 transition-colors">Our Story</a></li>
 					<li class="mx-4 my-2"><a href="/gallery" class="hover:text-gray-700 transition-colors">Gallery</a></li>
 					<li class="mx-4 my-2"><a href="#travel" class="hover:text-gray-700 transition-colors">Travel</a></li>
@@ -67,10 +67,9 @@ templ HeroSection() {
 										}
 										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
 									/>
-									// JPEG fallback with LQIP
+									// JPEG fallback - first image (i==2) loads eagerly for LCP, others lazy load
 									<img
-										src={ fmt.Sprintf("/static/images/slideshow/hero-%02d-lqip.jpg", i) }
-										data-src={ fmt.Sprintf("/static/images/slideshow/hero-%02d-1024w.jpg", i) }
+										src={ fmt.Sprintf("/static/images/slideshow/hero-%02d-1024w.jpg", i) }
 										srcset={
 											fmt.Sprintf("/static/images/slideshow/hero-%02d-640w.jpg 640w, /static/images/slideshow/hero-%02d-768w.jpg 768w, /static/images/slideshow/hero-%02d-1024w.jpg 1024w",
 												i, i, i)
@@ -79,9 +78,14 @@ templ HeroSection() {
 										alt={ fmt.Sprintf("Andrew and Molly engagement photo %d of 6", i-1) }
 										width="1024"
 										height="1535"
-										class="w-full h-auto rounded-lg shadow-lg responsive-image"
+										class="w-full h-auto rounded-lg shadow-lg"
 										style="max-height: 500px; object-fit: cover; aspect-ratio: 2/3;"
-										loading="lazy"
+										if i == 4 {
+											loading="eager"
+											fetchpriority="high"
+										} else {
+											loading="lazy"
+										}
 									/>
 								</picture>
 							</div>

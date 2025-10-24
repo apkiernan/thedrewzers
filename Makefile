@@ -1,5 +1,5 @@
 # Development targets
-.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images
+.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js
 
 # Default development target
 all: dev-build
@@ -35,6 +35,11 @@ gallery-metadata:
 	@echo "Generating gallery image metadata..."
 	@go run cmd/gallery-metadata/main.go
 
+# Minify and fingerprint JavaScript files
+minify-js:
+	@echo "Minifying and fingerprinting JavaScript files..."
+	@go run cmd/minify-js/main.go
+
 # Image optimization variables
 SOURCE_IMAGES=static/images
 DIST_IMAGES=dist/images
@@ -56,7 +61,7 @@ optimize-images:
 	@echo "Image optimization complete!"
 
 # Build static HTML files
-static-build: tpl optimize-images gallery-metadata
+static-build: tpl optimize-images gallery-metadata minify-js
 	@echo "Building static site..."
 	@go run ./cmd/build
 	@echo "Copying static assets to dist..."
@@ -85,19 +90,19 @@ lambda-build: clean
 
 # Upload static assets to S3
 upload-static:
-	aws s3 sync ./static s3://$(S3_BUCKET)/static/ --acl public-read
+	aws s3 sync ./static s3://$(S3_BUCKET)/static/ --acl public-read --cache-control "public, max-age=31536000, immutable"
 
 # Deploy static site to S3
 static-deploy: static-build
 	@echo "Uploading HTML files to S3..."
-	@aws s3 cp dist/index.html s3://$(S3_BUCKET)/index.html --acl public-read --content-type "text/html"
-	@aws s3 cp dist/venue.html s3://$(S3_BUCKET)/venue.html --acl public-read --content-type "text/html"
-	@aws s3 cp dist/gallery.html s3://$(S3_BUCKET)/gallery.html --acl public-read --content-type "text/html"
+	@aws s3 cp dist/index.html s3://$(S3_BUCKET)/index.html --acl public-read --content-type "text/html" --cache-control "public, max-age=86400"
+	@aws s3 cp dist/venue.html s3://$(S3_BUCKET)/venue.html --acl public-read --content-type "text/html" --cache-control "public, max-age=86400"
+	@aws s3 cp dist/gallery.html s3://$(S3_BUCKET)/gallery.html --acl public-read --content-type "text/html" --cache-control "public, max-age=86400"
 	@echo "Uploading static assets to S3..."
-	@aws s3 sync dist/css s3://$(S3_BUCKET)/static/css/ --acl public-read
-	@aws s3 sync dist/js s3://$(S3_BUCKET)/static/js/ --acl public-read
-	@aws s3 sync dist/fonts s3://$(S3_BUCKET)/static/fonts/ --acl public-read
-	@aws s3 sync dist/images s3://$(S3_BUCKET)/static/images/ --acl public-read
+	@aws s3 sync dist/css s3://$(S3_BUCKET)/static/css/ --acl public-read --cache-control "public, max-age=31536000, immutable"
+	@aws s3 sync dist/js s3://$(S3_BUCKET)/static/js/ --acl public-read --cache-control "public, max-age=31536000, immutable"
+	@aws s3 sync dist/fonts s3://$(S3_BUCKET)/static/fonts/ --acl public-read --cache-control "public, max-age=31536000, immutable"
+	@aws s3 sync dist/images s3://$(S3_BUCKET)/static/images/ --acl public-read --cache-control "public, max-age=31536000, immutable"
 	@echo "Static site deployed successfully!"
 	@echo "Creating CloudFront invalidation..."
 	@if [ -n "$(CLOUDFRONT_DISTRIBUTION_ID)" ]; then \

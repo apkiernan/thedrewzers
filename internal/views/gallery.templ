@@ -1,6 +1,9 @@
 package views
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/apkiernan/thedrewzers/internal/assets"
+)
 
 // ImageMetadata represents metadata for a gallery image
 type ImageMetadata struct {
@@ -91,6 +94,6 @@ templ GalleryPage(images []ImageMetadata) {
 			</button>
 		</div>
 		// Gallery JavaScript (ES module - gallery.js imports lightbox.js)
-		<script type="module" src="/static/js/gallery.js?v=3"></script>
+		<script type="module" src={ assets.Asset("/static/js/gallery.js") }></script>
 	</div>
 }

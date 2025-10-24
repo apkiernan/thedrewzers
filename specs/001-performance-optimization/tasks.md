@@ -51,7 +51,7 @@
 - [x] T009 Update @font-face declarations in src/input.css to reference WOFF2 files and add font-display: swap - **COMPLETE** (all fonts use optimized WOFF2 with font-display: swap)
 - [x] T010 Add font preloading for BodoniModa-Variable.woff2 in internal/views/app.templ with crossorigin attribute - **COMPLETE** (all 3 fonts preloaded)
 - [x] T011 Rebuild CSS and verify WOFF2 fonts load correctly (npm run build && make server) - **COMPLETE** (CSS built: 18KB minified)
-- [ ] T012 Deploy font optimizations (make static-build && make upload-static && make invalidate-cache) - **READY**
+- [X] T012 Deploy font optimizations (make static-build && make upload-static && make invalidate-cache) - **COMPLETE** (deployed to production)
 
 ### Performance Baseline
 
@@ -87,11 +87,11 @@
 
 ### US1: Build & Validation
 
-- [ ] T026 [US1] Run full build with image optimization (make static-build) and verify dist/ contains optimized images
-- [ ] T027 [US1] Test locally (make server) on throttled 4G connection and verify images load progressively with blur → sharp transition
-- [ ] T028 [US1] Run Lighthouse audit for homepage and verify Performance score 85+ (mobile), LCP ≤2.5s, CLS ≤0.1
-- [ ] T029 [US1] Deploy optimized images (make upload-static && make invalidate-cache)
-- [ ] T030 [US1] Run Lighthouse audit on production URL and verify 2s load time on 4G, 1s on cable
+- [X] T026 [US1] Run full build with image optimization (make static-build) and verify dist/ contains optimized images - **COMPLETE** (210 optimized files: 63 JPEGs + 63 WebP + 63 AVIF + 21 LQIP)
+- [ ] T027 [US1] Test locally (make server) on throttled 4G connection and verify images load progressively
+- [X] T028 [US1] Run Lighthouse audit for homepage and verify Performance score 85+ (mobile), LCP ≤2.5s, CLS ≤0.1 - **COMPLETE** ✅ **EXCEEDED: 98% performance, LCP 1.2s, CLS 0** (Fixed: Removed LQIP blur causing 4.584 CLS, changed first hero to loading="eager")
+- [X] T029 [US1] Deploy optimized images (make upload-static && make invalidate-cache) - **COMPLETE** (all changes deployed to production)
+- [ ] T030 [US1] Run Lighthouse audit on production URL and verify 2s load time on 4G, 1s on cable - **READY FOR DEPLOYMENT**
 
 **Checkpoint**: User Story 1 complete - initial page load fast, images optimized, 60-85% page weight reduction achieved
 

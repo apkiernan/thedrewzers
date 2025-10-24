@@ -1,5 +1,7 @@
 package views
 
+import "github.com/apkiernan/thedrewzers/internal/assets"
+
 // App is the base layout for all pages (both dynamic serving and static generation)
 templ App(page templ.Component) {
 	<!DOCTYPE html>
@@ -17,10 +19,10 @@ templ App(page templ.Component) {
 			<link href="/static/css/tailwind.css" rel="stylesheet"/>
 			<link href="/static/css/styles.css" rel="stylesheet"/>
 			<!-- Scripts with defer for better performance -->
-			<script src="/static/js/image-loader.js" defer></script>
-			<script src="/static/js/slideshow.js" defer></script>
-			<script src="/static/js/flip-cards.js" defer></script>
-			<script type="module" src="/static/js/hero-lightbox.js"></script>
+			<script src={ assets.Asset("/static/js/image-loader.js") } defer></script>
+			<script src={ assets.Asset("/static/js/slideshow.js") } defer></script>
+			<script src={ assets.Asset("/static/js/flip-cards.js") } defer></script>
+			<script type="module" src={ assets.Asset("/static/js/hero-lightbox.js") }></script>
 		</head>
 		<body class="bg-gray-50">
 			@page
