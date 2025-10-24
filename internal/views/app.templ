@@ -18,6 +18,8 @@ templ App(page templ.Component) {
 			<!-- Preload LCP hero image -->
 			<link rel="preload" as="image" type="image/avif" href="/static/images/slideshow/hero-04-1024w.avif" imagesrcset="/static/images/slideshow/hero-04-640w.avif 640w, /static/images/slideshow/hero-04-768w.avif 768w, /static/images/slideshow/hero-04-1024w.avif 1024w" imagesizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"/>
 			<link rel="preload" as="image" type="image/webp" href="/static/images/slideshow/hero-04-1024w.webp" imagesrcset="/static/images/slideshow/hero-04-640w.webp 640w, /static/images/slideshow/hero-04-768w.webp 768w, /static/images/slideshow/hero-04-1024w.webp 1024w" imagesizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"/>
+			<!-- Preload critical CSS -->
+			<link rel="preload" href="/static/css/tailwind.css" as="style"/>
 			<!-- Stylesheets -->
 			<link href="/static/css/tailwind.css" rel="stylesheet"/>
 			<link href="/static/css/styles.css" rel="stylesheet"/>

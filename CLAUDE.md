@@ -26,9 +26,13 @@ Wedding website built with Go, Templ templating, and Tailwind CSS. Deployable to
 - `make tf-plan` - Preview Terraform changes
 - `make tf-apply` - Apply Terraform changes
 
+### Performance Optimization
+- `make optimize-images` - Generate responsive image sizes and modern formats (AVIF/WebP/JPEG)
+- `npm run lighthouse` - Run Lighthouse CI performance audit
+- `npm run build` - Build production CSS with Tailwind minification
+
 ### Other Commands
 - `make clean` - Remove build artifacts
-- `npm run build` - Build production CSS
 - `npm run watch` - Watch CSS changes
 
 ## Architecture
@@ -78,3 +82,55 @@ Wedding website built with Go, Templ templating, and Tailwind CSS. Deployable to
 
 ## Recent Changes
 - 001-performance-optimization: Added Go 1.23.3, Node.js (Tailwind CSS 3.4.14)
+
+## Performance Optimization
+
+### Overview
+The site is heavily optimized for performance with automated build-time optimization:
+- **Font optimization**: WOFF2 subsets (70% reduction: 460KB → 90KB)
+- **Image optimization**: Responsive sizes + modern formats (AVIF/WebP/JPEG)
+- **CloudFront caching**: Aggressive caching (1-year for assets, 1-day for HTML)
+- **Resource loading**: Preloading critical resources, deferred JavaScript
+- **Mobile performance**: 86% Lighthouse score (production median)
+
+### Running Lighthouse Audits
+```bash
+# Run Lighthouse CI audit (uses .lighthouse/lighthouserc.json config)
+npm run lighthouse
+
+# Results include:
+# - Performance score (mobile + desktop)
+# - Core Web Vitals (LCP, CLS, TBT, FCP, Speed Index)
+# - Accessibility, Best Practices, SEO scores
+```
+
+### Image Optimization Workflow
+```bash
+# Optimize all images in static/images/
+make optimize-images
+
+# This generates:
+# - Responsive JPEG sizes: 640w, 768w, 1024w, 1280w, 1920w, 2560w
+# - AVIF versions: Best compression for modern browsers
+# - WebP versions: Good compression for older browsers
+# - LQIP placeholders: Tiny blurred images for instant loading
+# Output: dist/images/
+```
+
+**Affected files**: Templates use `<picture>` elements with `srcset` and `sizes` for automatic format/size selection.
+
+### Font Optimization
+Fonts are pre-optimized as WOFF2 subsets with Latin charset:
+- `static/fonts/optimized/BodoniModa-Variable.woff2` (25KB, -84%)
+- `static/fonts/optimized/BodoniModa-Italic-Variable.woff2` (31KB, -82%)
+- `static/fonts/optimized/BonheurRoyale-Regular.woff2` (20KB, -85%)
+
+Fonts are preloaded in `internal/views/app.templ` for instant rendering.
+
+### Performance Targets
+- **Mobile**: Performance 90+, LCP ≤2.5s, CLS ≤0.1, TBT <200ms
+- **Desktop**: Performance 95+, LCP ≤2.0s, CLS ≤0.05, TBT <100ms
+- **Page Weight**: <1MB total (mobile), fonts <150KB, CSS ~28KB minified
+- **Caching**: 95%+ cache hit rate for return visitors
+
+See `specs/001-performance-optimization/` for detailed documentation.
