@@ -14,3 +14,16 @@ build/
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+
+# Performance Optimization
+source-images/
+*.log
+.env*
+.lighthouse/
+.lighthouseci/
+
+# Go
+*.exe
+*.test
+vendor/
+*.out

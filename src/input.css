@@ -4,21 +4,24 @@
 
 @font-face {
   font-family: "BonheurRoyale-Regular";
-  src: url("../fonts/BonheurRoyale-Regular.ttf");
+  src: url("../fonts/optimized/BonheurRoyale-Regular.woff2") format("woff2");
+  font-display: swap;
 }
 
 @font-face {
   font-family: "Bodoni Moda";
-  src: url("../fonts/BodoniModa-Variable.ttf");
+  src: url("../fonts/optimized/BodoniModa-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: "Bodoni Moda";
-  src: url("../fonts/BodoniModa-Italic-Variable.ttf");
+  src: url("../fonts/optimized/BodoniModa-Italic-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: italic;
+  font-display: swap;
 }
 
 /* Background applied to index-view instead of body */

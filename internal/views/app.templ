@@ -1,22 +1,27 @@
 package views
 
+// App is the base layout for all pages (both dynamic serving and static generation)
 templ App(page templ.Component) {
+	<!DOCTYPE html>
 	<html lang="en" class="scroll-smooth">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Andrew & Molly - May 30, 2026</title>
+			<!-- Preload optimized fonts -->
+			<link rel="preload" href="/static/fonts/optimized/BodoniModa-Variable.woff2" as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href="/static/fonts/optimized/BodoniModa-Italic-Variable.woff2" as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href="/static/fonts/optimized/BonheurRoyale-Regular.woff2" as="font" type="font/woff2" crossorigin/>
+			<!-- Stylesheets -->
 			<link href="/static/css/tailwind.css" rel="stylesheet"/>
 			<link href="/static/css/styles.css" rel="stylesheet"/>
-			<link rel="dns-prefetch" href="https://picsum.photos"/>
-			<link rel="preconnect" href="https://picsum.photos" crossorigin/>
-			<link rel="preload" as="image" href="https://picsum.photos/200/300" imagesrcset="https://picsum.photos/200/300 1x"/>
+			<!-- Scripts with defer for better performance -->
 			<script src="/static/js/slideshow.js" defer></script>
 			<script src="/static/js/flip-cards.js" defer></script>
 			<script type="module" src="/static/js/hero-lightbox.js"></script>
-			<title>The Drewzers are getting married!</title>
 		</head>
-		<body class="flex flex-col min-h-screen">
+		<body class="bg-gray-50">
 			@page
 		</body>
 	</html>

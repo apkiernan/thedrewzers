@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --minify",
-    "watch": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch"
+    "watch": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch",
+    "lighthouse": "lhci autorun"
   },
   "repository": {
     "type": "git",

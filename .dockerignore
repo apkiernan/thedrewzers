@@ -1,0 +1,53 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Build artifacts
+dist/
+build/
+tmp/
+bin/
+*.exe
+*.test
+
+# Dependencies
+node_modules/
+vendor/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs & temp files
+*.log
+*.tmp
+.env*
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Terraform
+terraform/
+*.tf
+*.tfvars
+*.tfstate*
+.terraform/
+
+# Performance optimization sources (keep compiled only)
+source-images/
+specs/
+
+# Templ templates (compiled to Go)
+*_templ.go
+
+# Testing
+.lighthouse/
+coverage/

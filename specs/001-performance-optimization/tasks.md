@@ -29,11 +29,11 @@
 
 **Purpose**: Install tools and initialize performance optimization infrastructure
 
-- [ ] T001 Install image optimization CLI tools (cwebp, avifenc, mozjpeg) via brew/apt
-- [ ] T002 [P] Install font optimization tools (glyphhanger via npm, fonttools/brotli via pip)
-- [ ] T003 [P] Install Lighthouse CI for performance monitoring (npm install -g @lhci/cli)
-- [ ] T004 [P] Create directory structure: cmd/optimize-images/, cmd/generate-lqip/, .lighthouse/
-- [ ] T005 Verify all CLI tools installed correctly (cwebp --version, avifenc --version, glyphhanger --version, pyftsubset --help)
+- [ ] T001 Install image optimization CLI tools (cwebp, avifenc, mozjpeg) via brew/apt - **PARTIAL** (cwebp ✅, mozjpeg ✅, avifenc ⚠️ needs: brew install libavif)
+- [ ] T002 [P] Install font optimization tools (glyphhanger via npm, fonttools/brotli via uv) - **PENDING** (needs: npm install -g glyphhanger && uv pip install fonttools brotli)
+- [ ] T003 [P] Install Lighthouse CI for performance monitoring (npm install -g @lhci/cli) - **PENDING**
+- [X] T004 [P] Create directory structure: cmd/optimize-images/, cmd/generate-lqip/, .lighthouse/
+- [ ] T005 Verify all CLI tools installed correctly (cwebp --version, avifenc --version, glyphhanger --version, pyftsubset --help) - **BLOCKED** (waiting for T001-T003)
 
 ---
 
@@ -45,19 +45,19 @@
 
 ### Font Optimization (Foundational)
 
-- [ ] T006 Subset BodoniModa-Variable.ttf to WOFF2 using pyftsubset with Latin charset (U+0020-007F,U+00A0-00FF) → static/fonts/BodoniModa-Variable.woff2
-- [ ] T007 [P] Subset BodoniModa-Italic-Variable.ttf to WOFF2 using pyftsubset with Latin charset → static/fonts/BodoniModa-Italic-Variable.woff2
-- [ ] T008 [P] Subset BonheurRoyale-Regular.ttf to WOFF2 using pyftsubset with Latin charset → static/fonts/BonheurRoyale-Regular.woff2
-- [ ] T009 Update @font-face declarations in src/input.css to reference WOFF2 files and add font-display: swap
-- [ ] T010 Add font preloading for BodoniModa-Variable.woff2 in internal/views/app.templ with crossorigin attribute
-- [ ] T011 Rebuild CSS and verify WOFF2 fonts load correctly (npm run build && make server)
-- [ ] T012 Deploy font optimizations (make static-build && make upload-static && make invalidate-cache)
+- [ ] T006 Subset BodoniModa-Variable.ttf to WOFF2 using pyftsubset with Latin charset (U+0020-007F,U+00A0-00FF) → static/fonts/BodoniModa-Variable.woff2 - **BLOCKED** (needs: uv pip install fonttools brotli)
+- [ ] T007 [P] Subset BodoniModa-Italic-Variable.ttf to WOFF2 using pyftsubset with Latin charset → static/fonts/BodoniModa-Italic-Variable.woff2 - **BLOCKED**
+- [ ] T008 [P] Subset BonheurRoyale-Regular.ttf to WOFF2 using pyftsubset with Latin charset → static/fonts/BonheurRoyale-Regular.woff2 - **BLOCKED**
+- [ ] T009 Update @font-face declarations in src/input.css to reference WOFF2 files and add font-display: swap - **READY** (can be done now, but should wait for T006-T008)
+- [ ] T010 Add font preloading for BodoniModa-Variable.woff2 in internal/views/app.templ with crossorigin attribute - **READY**
+- [ ] T011 Rebuild CSS and verify WOFF2 fonts load correctly (npm run build && make server) - **BLOCKED** (needs T006-T010)
+- [ ] T012 Deploy font optimizations (make static-build && make upload-static && make invalidate-cache) - **BLOCKED**
 
 ### Performance Baseline
 
-- [ ] T013 Configure Lighthouse CI in .lighthouse/lighthouserc.json with performance budgets (90+ mobile, 95+ desktop, LCP ≤2.5s, CLS ≤0.1)
-- [ ] T014 Run initial Lighthouse audit to establish baseline scores (npm run lighthouse or lhci autorun)
-- [ ] T015 Document baseline metrics in specs/001-performance-optimization/baseline-metrics.md
+- [X] T013 Configure Lighthouse CI in .lighthouse/lighthouserc.json with performance budgets (90+ mobile, 95+ desktop, LCP ≤2.5s, CLS ≤0.1)
+- [ ] T014 Run initial Lighthouse audit to establish baseline scores (npm run lighthouse or lhci autorun) - **BLOCKED** (needs: npm install -g @lhci/cli)
+- [X] T015 Document baseline metrics in specs/001-performance-optimization/baseline-metrics.md
 
 **Checkpoint**: Fonts optimized (70% payload reduction achieved), baseline metrics established - user story implementation can now begin
 
