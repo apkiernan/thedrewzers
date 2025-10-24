@@ -71,3 +71,10 @@ Wedding website built with Go, Templ templating, and Tailwind CSS. Deployable to
 - Default S3 bucket: `thedrewzers-wedding-static`
 - Default region: `us-east-1`
 - CloudFront invalidation: Set `CLOUDFRONT_DISTRIBUTION_ID` env var or let it auto-detect from Terraform outputs
+
+## Active Technologies
+- Go 1.23.3, Node.js (Tailwind CSS 3.4.14) (001-performance-optimization)
+- AWS S3 (static assets), CloudFront CDN (distribution), no database (001-performance-optimization)
+
+## Recent Changes
+- 001-performance-optimization: Added Go 1.23.3, Node.js (Tailwind CSS 3.4.14)
