@@ -1,0 +1,8 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="64" fill="#E5E7EB"/>
+
+  <!-- Person icon -->
+  <circle cx="64" cy="52" r="20" fill="#9CA3AF"/>
+  <path d="M64 76C43.0132 76 26 84.9543 26 96C26 107.046 43.0132 116 64 116C84.9868 116 102 107.046 102 96C102 84.9543 84.9868 76 64 76Z" fill="#9CA3AF"/>
+</svg>

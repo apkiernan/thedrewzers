@@ -9,5 +9,6 @@ import (
 func Router() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HandleHomePage)
+	mux.HandleFunc("/wedding-party", handlers.HandleWeddingPartyPage)
 	return mux
 }

@@ -1,5 +1,86 @@
 package views
 
+type WeddingPartyMember struct {
+	Name        string
+	Role        string
+	Photo       string
+	Description string
+	Side        string
+}
+
+func getGroomsmen() []WeddingPartyMember {
+	return []WeddingPartyMember{
+		{
+			Name:        "Ronnie Campbell",
+			Role:        "Best Man",
+			Photo:       "/images/wedding-party/ronnie-campbell.jpg",
+			Description: "Andrew's longtime friend and college roommate.",
+			Side:        "groomsmen",
+		},
+		{
+			Name:        "Mike Alves",
+			Role:        "Groomsman",
+			Photo:       "/images/wedding-party/mike-alves.jpg",
+			Description: "Andrew's childhood friend from the neighborhood.",
+			Side:        "groomsmen",
+		},
+		{
+			Name:        "Dana Roy",
+			Role:        "Groomsman",
+			Photo:       "/images/wedding-party/dana-roy.jpg",
+			Description: "One of Andrew's closest friends.",
+			Side:        "groomsmen",
+		},
+		{
+			Name:        "Mike Silva",
+			Role:        "Groomsman",
+			Photo:       "/images/wedding-party/mike-silva.jpg",
+			Description: "Andrew's good friend and trusted companion.",
+			Side:        "groomsmen",
+		},
+		{
+			Name:        "Pete Smith",
+			Role:        "Groomsman",
+			Photo:       "/images/wedding-party/pete-smith.jpg",
+			Description: "Andrew's longtime friend.",
+			Side:        "groomsmen",
+		},
+	}
+}
+
+func getBridesmaids() []WeddingPartyMember {
+	return []WeddingPartyMember{
+		{
+			Name:        "Melissa Moylan",
+			Role:        "Maid of Honor",
+			Photo:       "/images/wedding-party/melissa-moylan.jpg",
+			Description: "Molly's closest confidant since college.",
+			Side:        "bridesmaids",
+		},
+		{
+			Name:        "Ainsley Kelliher",
+			Role:        "Maid of Honor",
+			Photo:       "/images/wedding-party/ainsley-kelliher.jpg",
+			Description: "Molly's best friend since high school.",
+			Side:        "bridesmaids",
+		},
+		{
+			Name:        "Kasey Silva",
+			Role:        "Bridesmaid",
+			Photo:       "/images/wedding-party/kasey-silva.jpg",
+			Description: "A dear friend of Molly's.",
+			Side:        "bridesmaids",
+		},
+		{
+			Name:        "Allison Chisholm",
+			Role:        "Bridesmaid",
+			Photo:       "/images/wedding-party/allison-chisholm.jpg",
+			Description: "Molly's cherished friend.",
+			Side:        "bridesmaids",
+		},
+	}
+}
+
 templ WeddingPartySection() {
 	<section id="wedding-party" class="py-16 bg-white">
 		<div class="max-w-4xl mx-auto px-6 mb-8">
