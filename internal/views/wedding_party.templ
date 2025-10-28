@@ -8,41 +8,49 @@ type WeddingPartyMember struct {
 	Side        string
 }
 
+// truncateText truncates text to maxLength characters and adds ellipsis if needed
+func truncateText(text string, maxLength int) string {
+	if len(text) <= maxLength {
+		return text
+	}
+	return text[:maxLength] + "..."
+}
+
 func getGroomsmen() []WeddingPartyMember {
 	return []WeddingPartyMember{
 		{
 			Name:        "Ronnie Campbell",
 			Role:        "Best Man",
-			Photo:       "/images/wedding-party/ronnie-campbell.jpg",
-			Description: "Andrew's longtime friend and college roommate.",
+			Photo:       "",
+			Description: "Andrew's longtime friend and college roommate who has been there through thick and thin. From late-night study sessions to weekend adventures, Ronnie has always been the first person Andrew calls when he needs advice or a good laugh. His unwavering loyalty and infectious sense of humor make him the perfect choice for Best Man.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Mike Alves",
 			Role:        "Groomsman",
-			Photo:       "/images/wedding-party/mike-alves.jpg",
-			Description: "Andrew's childhood friend from the neighborhood.",
+			Photo:       "",
+			Description: "Andrew's childhood friend from the neighborhood who grew up just a few houses down the street. They spent countless summers riding bikes, playing baseball, and getting into harmless mischief together. Even as life took them in different directions, their friendship has remained strong and true. Mike's easygoing nature and genuine kindness have made him a constant in Andrew's life.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Dana Roy",
 			Role:        "Groomsman",
-			Photo:       "/images/wedding-party/dana-roy.jpg",
-			Description: "One of Andrew's closest friends.",
+			Photo:       "",
+			Description: "One of Andrew's closest friends who shares his passion for sports and outdoor adventures. Whether it's hitting the golf course, catching a game, or planning the next camping trip, Dana is always up for anything. His positive attitude and ability to find humor in any situation have helped create countless memorable moments. Andrew couldn't imagine this day without Dana by his side.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Mike Silva",
 			Role:        "Groomsman",
-			Photo:       "/images/wedding-party/mike-silva.jpg",
-			Description: "Andrew's good friend and trusted companion.",
+			Photo:       "",
+			Description: "Andrew's good friend and trusted companion who has been a source of wisdom and support through life's ups and downs. Their friendship began through mutual friends and quickly grew into something special. Mike's thoughtful perspective and genuine care for those around him make him someone Andrew deeply values. Together they've shared many great conversations and even better memories.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Pete Smith",
 			Role:        "Groomsman",
-			Photo:       "/images/wedding-party/pete-smith.jpg",
-			Description: "Andrew's longtime friend.",
+			Photo:       "",
+			Description: "Andrew's longtime friend who brings energy and enthusiasm to every gathering. Pete has an incredible talent for bringing people together and making everyone feel welcome. From spontaneous road trips to quiet evenings catching up over dinner, Pete has been a constant presence in Andrew's life. His loyalty and fun-loving spirit make every moment more enjoyable.",
 			Side:        "groomsmen",
 		},
 	}
@@ -53,129 +61,123 @@ func getBridesmaids() []WeddingPartyMember {
 		{
 			Name:        "Melissa Moylan",
 			Role:        "Maid of Honor",
-			Photo:       "/images/wedding-party/melissa-moylan.jpg",
-			Description: "Molly's closest confidant since college.",
+			Photo:       "",
+			Description: "Molly's closest confidant since their freshman year of college when they were randomly assigned as roommates. What started as a housing arrangement quickly blossomed into a deep friendship built on late-night heart-to-hearts, shared dreams, and unwavering support. Through every milestone and challenge, Melissa has been Molly's rock and biggest cheerleader. There's no one Molly trusts more to stand beside her on this special day.",
 			Side:        "bridesmaids",
 		},
 		{
 			Name:        "Ainsley Kelliher",
 			Role:        "Maid of Honor",
-			Photo:       "/images/wedding-party/ainsley-kelliher.jpg",
-			Description: "Molly's best friend since high school.",
+			Photo:       "",
+			Description: "Molly's best friend since high school who has known her through every phase of life. From navigating teenage years to adulting together, Ainsley has been a constant source of laughter, wisdom, and unconditional love. They've shared countless adventures, inside jokes, and memories that span over a decade. Ainsley's fierce loyalty and genuine spirit make her irreplaceable in Molly's life.",
 			Side:        "bridesmaids",
 		},
 		{
 			Name:        "Kasey Silva",
 			Role:        "Bridesmaid",
-			Photo:       "/images/wedding-party/kasey-silva.jpg",
-			Description: "A dear friend of Molly's.",
+			Photo:       "",
+			Description: "A dear friend of Molly's who brings warmth and positivity to every situation. Their friendship grew naturally through shared interests and mutual friends, and has only deepened over the years. Kasey has a special gift for knowing exactly what to say and when, whether it's offering encouragement or simply being present. Her caring nature and authentic friendship mean the world to Molly.",
 			Side:        "bridesmaids",
 		},
 		{
 			Name:        "Allison Chisholm",
 			Role:        "Bridesmaid",
-			Photo:       "/images/wedding-party/allison-chisholm.jpg",
-			Description: "Molly's cherished friend.",
+			Photo:       "",
+			Description: "Molly's cherished friend whose friendship has been a beautiful constant through life's changes. Known for her quick wit, generous heart, and ability to make any ordinary moment feel special, Allison has created countless cherished memories with Molly. Whether it's celebrating victories or weathering storms, Allison's steadfast friendship has been invaluable. Molly is honored to have her standing beside her on this momentous day.",
 			Side:        "bridesmaids",
 		},
 	}
 }
 
+// WeddingPartySection renders the full wedding party page
 templ WeddingPartySection() {
-	<section id="wedding-party" class="py-16 bg-white">
-		<div class="max-w-4xl mx-auto px-6 mb-8">
-			<h2 class="script text-5xl md:text-6xl text-blue-300 mb-12 font-extralight text-center">Wedding Party</h2>
-			<!-- Wedding Party slideshow styles moved to /static/css/styles.css -->
-			<div class="grid md:grid-cols-2 gap-16">
-				<div>
-					<h3 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Groomsmen</h3>
-					<div class="wedding-slides" data-interval="5000">
-						<!-- Best Man slide -->
-						<div class="wedding-slide cycle-25" style="animation-delay: 0s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Best Man photo" class="wedding-photo shadow-md" width="128" height="128" fetchpriority="high" loading="eager" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-sm uppercase tracking-wider text-gray-500">Best Man</p>
-									<p class="text-gray-700 text-lg font-medium mt-1">Ronnie Campbell</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Andrew's longtime friend. Placeholder bio about Ronnie goes here.</p>
-								</div>
-							</div>
-						</div>
-						<!-- Groomsman slides -->
-						<div class="wedding-slide cycle-25" style="animation-delay: 5s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Mike Alves</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Mike goes here.</p>
-								</div>
-							</div>
-						</div>
-						<div class="wedding-slide cycle-25" style="animation-delay: 10s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Dana Roy</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Dana goes here.</p>
-								</div>
-							</div>
-						</div>
-						<div class="wedding-slide cycle-25" style="animation-delay: 15s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Mike Silva</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Mike goes here.</p>
-								</div>
-							</div>
-						</div>
-						<div class="wedding-slide cycle-25" style="animation-delay: 20s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Groomsman photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Pete Smith</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Pete goes here.</p>
-								</div>
-							</div>
-						</div>
-					</div>
+	<div class="min-h-screen bg-white">
+		<section id="wedding-party" class="py-16 bg-gray-50">
+			<div class="max-w-4xl mx-auto px-6 text-center">
+				<h2 class="script text-5xl md:text-6xl text-blue-300 mb-8 font-extralight">Our Wedding Party</h2>
+				<div class="mb-12">
+					<a href="/" class="text-blue-300 hover:text-blue-400 transition-colors underline">← Back to Home</a>
 				</div>
-				<div>
-					<h3 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Bridesmaids</h3>
-					<div class="wedding-slides" data-interval="5000">
-						<!-- Maids of Honor slide (joint) -->
-						<div class="wedding-slide cycle-20" style="animation-delay: 0s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Maids of Honor photo" class="wedding-photo shadow-md" width="128" height="128" fetchpriority="high" loading="eager" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-sm uppercase tracking-wider text-gray-500">Maids of Honor</p>
-									<p class="text-gray-700 text-lg font-medium mt-1">Melissa Moylan &amp; Ainsley Kelliher</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Molly's closest confidants. Placeholder bio about Melissa and Ainsley goes here.</p>
-								</div>
-							</div>
-						</div>
-						<!-- Bridesmaid slides -->
-						<div class="wedding-slide cycle-20" style="animation-delay: 5s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Bridesmaid photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Kasey Silva</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Kasey goes here.</p>
-								</div>
-							</div>
-						</div>
-						<div class="wedding-slide cycle-20" style="animation-delay: 10s;">
-							<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-sm">
-								<img src="https://picsum.photos/200/300" alt="Bridesmaid photo" class="wedding-photo shadow-md" width="128" height="128" loading="lazy" decoding="async"/>
-								<div class="mt-4">
-									<p class="text-gray-700 text-lg font-medium">Allison Chisholm</p>
-									<p class="text-gray-500 text-sm mt-2 leading-relaxed">Placeholder bio about Allison goes here.</p>
-								</div>
-							</div>
-						</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+					<!-- Bridesmaids - left column on desktop, first on mobile -->
+					<div>
+						<h2 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Bridesmaids</h2>
+						@renderMembers(getBridesmaids())
+					</div>
+					<!-- Groomsmen - right column on desktop, second on mobile -->
+					<div>
+						<h2 class="text-lg uppercase tracking-wider text-gray-500 mb-4">Groomsmen</h2>
+						@renderMembers(getGroomsmen())
 					</div>
 				</div>
 			</div>
+		</section>
+	</div>
+}
+
+// renderMembers renders a list of wedding party members
+templ renderMembers(members []WeddingPartyMember) {
+	for i, member := range members {
+		@renderMember(member, i)
+	}
+}
+
+// renderMember renders an individual wedding party member card
+// First member in each column (index 0) uses eager loading for better perceived performance
+templ renderMember(member WeddingPartyMember, index int) {
+	<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-md border border-gray-200 bg-white mb-8 hover:shadow-lg transition-shadow duration-200">
+		if member.Photo != "" {
+			if index == 0 {
+				<img
+					src={ member.Photo }
+					alt={ member.Name }
+					class="rounded-full w-32 h-32 object-cover shadow-md"
+					width="128"
+					height="128"
+					loading="eager"
+					decoding="async"
+				/>
+			} else {
+				<img
+					src={ member.Photo }
+					alt={ member.Name }
+					class="rounded-full w-32 h-32 object-cover shadow-md"
+					width="128"
+					height="128"
+					loading="lazy"
+					decoding="async"
+				/>
+			}
+		} else {
+			if index == 0 {
+				<img
+					src="/static/images/default-avatar.svg"
+					alt="No photo available"
+					class="rounded-full w-32 h-32 object-cover shadow-md"
+					width="128"
+					height="128"
+					loading="eager"
+					decoding="async"
+				/>
+			} else {
+				<img
+					src="/static/images/default-avatar.svg"
+					alt="No photo available"
+					class="rounded-full w-32 h-32 object-cover shadow-md"
+					width="128"
+					height="128"
+					loading="lazy"
+					decoding="async"
+				/>
+			}
+		}
+		<div class="mt-6">
+			if member.Role != "" {
+				<p class="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-2">{ member.Role }</p>
+			}
+			<h3 class="text-gray-900 text-xl font-semibold mb-3">{ member.Name }</h3>
+			<p class="text-gray-600 text-base leading-relaxed">{ truncateText(member.Description, 500) }</p>
 		</div>
-	</section>
+	</div>
 }

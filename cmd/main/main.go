@@ -15,6 +15,7 @@ func main() {
 	server.Handle("GET /static/", http.StripPrefix("/static/", fs))
 	server.HandleFunc("GET /", handlers.HandleHomePage)
 	server.HandleFunc("GET /gallery", handlers.HandleGalleryPage)
+	server.HandleFunc("GET /wedding-party", handlers.HandleWeddingPartyPage)
 
 	fmt.Println("Server started on port 8080")
 	fmt.Println("Serving static files from ./dist")

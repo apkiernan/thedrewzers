@@ -60,15 +60,15 @@ This project uses single web application structure at repository root:
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Convert WeddingPartySection() to full-page WeddingParty() component in internal/views/wedding_party.templ
-- [ ] T009 [P] [US1] Create renderMembers() helper template in internal/views/wedding_party.templ
-- [ ] T010 [P] [US1] Create renderMember(member) template for individual cards in internal/views/wedding_party.templ
-- [ ] T011 [US1] Implement 2-column responsive grid layout with Tailwind classes (grid md:grid-cols-2) in internal/views/wedding_party.templ
-- [ ] T012 [US1] Add conditional rendering for missing photos (default avatar fallback) in renderMember() template
-- [ ] T013 [US1] Populate getGroomsmen() with actual wedding party data (5 members: Ronnie Campbell as Best Man, Mike Alves, Dana Roy, Mike Silva, Pete Smith)
-- [ ] T014 [US1] Populate getBridesmaids() with actual wedding party data (4 members: Melissa Moylan and Ainsley Kelliher as Maids of Honor, Kasey Silva, Allison Chisholm)
-- [ ] T015 [US1] Run templ generate to compile templates to Go code
-- [ ] T016 [US1] Test local dev server with make server and verify page renders at /wedding-party
+- [X] T008 [US1] Convert WeddingPartySection() to full-page WeddingParty() component in internal/views/wedding_party.templ
+- [X] T009 [P] [US1] Create renderMembers() helper template in internal/views/wedding_party.templ
+- [X] T010 [P] [US1] Create renderMember(member) template for individual cards in internal/views/wedding_party.templ
+- [X] T011 [US1] Implement 2-column responsive grid layout with Tailwind classes (grid md:grid-cols-2) in internal/views/wedding_party.templ
+- [X] T012 [US1] Add conditional rendering for missing photos (default avatar fallback) in renderMember() template
+- [X] T013 [US1] Populate getGroomsmen() with actual wedding party data (5 members: Ronnie Campbell as Best Man, Mike Alves, Dana Roy, Mike Silva, Pete Smith)
+- [X] T014 [US1] Populate getBridesmaids() with actual wedding party data (4 members: Melissa Moylan and Ainsley Kelliher as Maids of Honor, Kasey Silva, Allison Chisholm)
+- [X] T015 [US1] Run templ generate to compile templates to Go code
+- [X] T016 [US1] Test local dev server with make server and verify page renders at /wedding-party
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - wedding party page displays with all members in responsive layout
 
@@ -86,10 +86,10 @@ This project uses single web application structure at repository root:
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Add consistent spacing between member cards (mb-8 or similar) in renderMember() template
-- [ ] T018 [P] [US2] Add shadow and border styling to member cards for visual separation in internal/views/wedding_party.templ
-- [ ] T019 [P] [US2] Ensure consistent text hierarchy (role → name → description) with appropriate font sizes in renderMember() template
-- [ ] T020 [US2] Test visual scanning on various screen sizes (320px, 768px, 1024px, 1920px) using browser DevTools
+- [X] T017 [US2] Add consistent spacing between member cards (mb-8 or similar) in renderMember() template
+- [X] T018 [P] [US2] Add shadow and border styling to member cards for visual separation in internal/views/wedding_party.templ
+- [X] T019 [P] [US2] Ensure consistent text hierarchy (role → name → description) with appropriate font sizes in renderMember() template
+- [X] T020 [US2] Test visual scanning on various screen sizes (320px, 768px, 1024px, 1920px) using browser DevTools
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - page displays with good visual hierarchy
 
@@ -107,11 +107,11 @@ This project uses single web application structure at repository root:
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Add wedding party photos to static/images/wedding-party/ (provided by couple: ronnie-campbell.jpg, mike-alves.jpg, etc.)
-- [ ] T022 [P] [US3] Add proper image attributes (width, height, loading) to renderMember() template
-- [ ] T023 [P] [US3] Set loading="lazy" for below-fold images and loading="eager" for above-fold in renderMember() template
-- [ ] T024 [US3] Apply rounded-full and object-cover classes for consistent photo display in internal/views/wedding_party.templ
-- [ ] T025 [US3] Test photo display on various devices and ensure no distortion
+- [X] T021 [US3] Add wedding party photos to static/images/wedding-party/ (provided by couple: ronnie-campbell.jpg, mike-alves.jpg, etc.)
+- [X] T022 [P] [US3] Add proper image attributes (width, height, loading) to renderMember() template
+- [X] T023 [P] [US3] Set loading="lazy" for below-fold images and loading="eager" for above-fold in renderMember() template
+- [X] T024 [US3] Apply rounded-full and object-cover classes for consistent photo display in internal/views/wedding_party.templ
+- [X] T025 [US3] Test photo display on various devices and ensure no distortion
 
 **Checkpoint**: All user stories should now be independently functional - photos load efficiently and display beautifully
 
@@ -121,11 +121,11 @@ This project uses single web application structure at repository root:
 
 **Purpose**: Integrate page into navigation and static build process
 
-- [ ] T026 Add "Wedding Party" link to navigation in internal/views/app.templ
-- [ ] T027 Add wedding party page generation function to cmd/build/main.go (follow pattern from other pages)
-- [ ] T028 Call wedding party generation function in main build workflow in cmd/build/main.go
-- [ ] T029 Run make static-build to generate dist/wedding-party.html
-- [ ] T030 Verify generated HTML file exists and contains correct content at dist/wedding-party.html
+- [X] T026 Add "Wedding Party" link to navigation in internal/views/hero.templ
+- [X] T027 Add wedding party page generation function to cmd/build/main.go (follow pattern from other pages)
+- [X] T028 Call wedding party generation function in main build workflow in cmd/build/main.go
+- [X] T029 Run make static-build to generate dist/wedding-party.html
+- [X] T030 Verify generated HTML file exists and contains correct content at dist/wedding-party.html
 
 ---
 
@@ -133,12 +133,12 @@ This project uses single web application structure at repository root:
 
 **Purpose**: Final improvements and validation
 
-- [ ] T031 [P] Add text truncation handling for long descriptions (max 500 chars) in renderMember() template
-- [ ] T032 [P] Verify all edge cases: missing photos, odd number of members, long text, empty state
-- [ ] T033 Test responsive layout breakpoints (320px, 768px, 1024px, 1920px) using browser DevTools
-- [ ] T034 Run make server and manually test all acceptance scenarios from spec.md
-- [ ] T035 [P] Run npm run lighthouse for performance audit (verify >90 performance score)
-- [ ] T036 Run make static-build && make upload-static && make invalidate-cache to deploy
+- [X] T031 [P] Add text truncation handling for long descriptions (max 500 chars) in renderMember() template
+- [X] T032 [P] Verify all edge cases: missing photos, odd number of members, long text, empty state
+- [X] T033 Test responsive layout breakpoints (320px, 768px, 1024px, 1920px) using browser DevTools
+- [X] T034 Run make server and manually test all acceptance scenarios from spec.md
+- [X] T035 [P] Run npm run lighthouse for performance audit (verify >90 performance score)
+- [X] T036 Run make static-build && make upload-static && make invalidate-cache to deploy
 
 ---
 
