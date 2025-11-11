@@ -73,15 +73,24 @@ body {
   min-height: 400px;
 }
 
-/* Individual gallery items */
+/* Individual gallery items - ZERO WHITESPACE */
 .gallery-item {
+  position: absolute;
   cursor: pointer;
   will-change: transform, opacity;
-  /* Smooth fade-in for initial load */
   transition:
     opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Zero whitespace - no padding/margin/border */
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  /* Prevent sub-pixel gaps */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .gallery-item:hover {
@@ -105,8 +114,19 @@ body {
   backdrop-filter: blur(8px);
 }
 
-/* Smooth image transitions */
+/* Gallery images - fill containers completely */
 .gallery-item img {
+  /* Fill container perfectly */
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  /* Remove any spacing */
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  /* Smooth transitions */
   will-change: transform;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }

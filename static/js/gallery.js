@@ -141,15 +141,13 @@ class GalleryMasonry {
     }
 
     // Initialize column heights array
-    this.columnHeights = new Array(this.columnCount).fill(0);
+    this.columnHeights = Array.from({ length: this.columnCount }, () => 0);
   }
 
   /**
    * Position items using column-based masonry algorithm
    */
   handleImageLoad(item) {
-    const img = item.querySelector("img");
-
     this.imagesLoaded++;
 
     // Position item absolutely using masonry algorithm
@@ -166,7 +164,6 @@ class GalleryMasonry {
    */
   positionItem(item) {
     const img = item.querySelector("img");
-    const index = parseInt(item.dataset.index || "0");
 
     // Calculate item dimensions
     const containerWidth = this.gallery.offsetWidth;
@@ -176,29 +173,22 @@ class GalleryMasonry {
     // Use declared width/height attributes if available (more reliable than naturalWidth/Height with LQIP)
     // Otherwise fall back to natural dimensions
     let aspectRatio;
-    if (img.getAttribute('width') && img.getAttribute('height')) {
-      const declaredWidth = parseInt(img.getAttribute('width'));
-      const declaredHeight = parseInt(img.getAttribute('height'));
-      aspectRatio = declaredWidth / declaredHeight;
+    if (img.getAttribute("width") && img.getAttribute("height")) {
+      const declaredWidth = parseInt(img.getAttribute("width"), 10);
+      const declaredHeight = parseInt(img.getAttribute("height"), 10);
+      // Ensure valid aspect ratio (prevent division by zero or invalid values)
+      aspectRatio = declaredHeight > 0 ? declaredWidth / declaredHeight : 1;
     } else if (img.naturalWidth && img.naturalHeight) {
-      aspectRatio = img.naturalWidth / img.naturalHeight;
+      aspectRatio =
+        img.naturalHeight > 0 ? img.naturalWidth / img.naturalHeight : 1;
     } else {
-      // Fallback if neither available
+      // Fallback if neither available (square aspect ratio)
       aspectRatio = 1;
     }
 
-    let itemHeight = columnWidth / aspectRatio;
-
-    // Add variety using pseudo-random pattern
-    const pattern = (index * 7 + 3) % 11;
-
-    if (pattern === 0) {
-      itemHeight *= 1.15;
-    } else if (pattern % 3 === 0) {
-      itemHeight *= 1.08;
-    } else if (pattern % 5 === 0) {
-      itemHeight *= 0.9;
-    }
+    // Calculate EXACT container height to match image aspect ratio
+    // Container width = columnWidth, height must maintain aspect ratio EXACTLY
+    const itemHeight = columnWidth / aspectRatio;
 
     // Find shortest column
     let shortestColumn = 0;
@@ -211,21 +201,23 @@ class GalleryMasonry {
       }
     }
 
-    // Position item
-    const left = shortestColumn * (columnWidth + this.gap);
-    const top = this.columnHeights[shortestColumn];
+    // Position item with pixel-perfect alignment (prevent sub-pixel gaps)
+    const left = Math.round(shortestColumn * (columnWidth + this.gap));
+    const top = Math.round(this.columnHeights[shortestColumn]);
+    const width = Math.round(columnWidth);
+    const totalHeight = Math.round(itemHeight);
 
     item.style.position = "absolute";
     item.style.left = `${left}px`;
     item.style.top = `${top}px`;
-    item.style.width = `${columnWidth}px`;
-    item.style.height = `${itemHeight}px`;
+    item.style.width = `${width}px`;
+    item.style.height = `${totalHeight}px`; // Container height includes frame padding
 
     // Make item visible after positioning (ready for intersection observer)
     item.style.visibility = "visible";
 
-    // Update column height
-    this.columnHeights[shortestColumn] += itemHeight + this.gap;
+    // Update column height (use rounded height for consistency)
+    this.columnHeights[shortestColumn] += totalHeight + this.gap;
   }
 
   /**

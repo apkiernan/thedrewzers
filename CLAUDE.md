@@ -81,6 +81,8 @@ Wedding website built with Go, Templ templating, and Tailwind CSS. Deployable to
 - AWS S3 (static assets), CloudFront CDN (distribution), no database (001-performance-optimization)
 - Go 1.23.3 + Templ v0.2.793 (templating), Tailwind CSS 3.4.14 (styling) (002-wedding-party-page)
 - Static files (Go slice/array for wedding party data in template) (002-wedding-party-page)
+- Go 1.23.3 (backend), JavaScript ES6+ (frontend), Templ v0.2.793 (templating) + Tailwind CSS 3.4.14, existing image optimization pipeline (AVIF/WebP/JPEG) (001-masonry-gallery)
+- Static JSON metadata file (`static/gallery-metadata.json`) for image dimensions (001-masonry-gallery)
 
 ## Recent Changes
 - 001-performance-optimization: Added Go 1.23.3, Node.js (Tailwind CSS 3.4.14)
