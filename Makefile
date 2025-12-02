@@ -11,6 +11,7 @@ dev-build: tpl gallery-metadata optimize-images
 	@echo "Copying static assets to dist..."
 	@mkdir -p dist
 	@cp -r static/css static/js static/fonts static/data dist/ 2>/dev/null || true
+	@cp -r static/images/wedding-party dist/images/ 2>/dev/null || true
 	@cp static/gallery-metadata.json dist/ 2>/dev/null || true
 	@echo "Development build complete!"
 
