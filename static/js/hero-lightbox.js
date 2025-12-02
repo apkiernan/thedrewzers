@@ -9,7 +9,6 @@ class HeroCarouselLightbox {
   constructor() {
     this.carousel = document.querySelector(".carousel-container");
     if (!this.carousel) {
-      console.log("Carousel container not found");
       return;
     }
 
@@ -19,7 +18,6 @@ class HeroCarouselLightbox {
     );
 
     if (this.slides.length === 0) {
-      console.warn("No carousel slides found for lightbox");
       return;
     }
 

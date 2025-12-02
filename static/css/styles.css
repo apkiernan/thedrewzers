@@ -1,6 +1,7 @@
 @font-face {
-  font-family: "BonheurRoyale-Regular";
-  src: url("../fonts/BonheurRoyale-Regular.ttf");
+  font-family: "Sirivennela";
+  src: url("../fonts/optimized/Sirivennela-Regular.woff2") format("woff2");
+  font-display: swap;
 }
 
 /* Prevent horizontal scrolling on all pages */
@@ -37,7 +38,7 @@ body {
 }
 
 .script {
-  font-family: "Libre Bodoni", serif; /* BonheurRoyale-Regular */
+  font-family: "Sirivennela", serif;
 }
 
 .bg-custom-gray {

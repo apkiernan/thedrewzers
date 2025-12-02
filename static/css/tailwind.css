@@ -751,6 +751,10 @@ video {
   max-width: 42rem;
 }
 
+.max-w-48 {
+  max-width: 12rem;
+}
+
 .max-w-4xl {
   max-width: 56rem;
 }
@@ -1177,14 +1181,6 @@ video {
 
 .ease-out {
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-}
-
-@font-face {
-  font-family: "BonheurRoyale-Regular";
-
-  src: url("../fonts/optimized/BonheurRoyale-Regular.woff2") format("woff2");
-
-  font-display: swap;
 }
 
 @font-face {

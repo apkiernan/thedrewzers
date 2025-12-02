@@ -43,7 +43,6 @@
     // Get DOM elements
     container = document.querySelector(".carousel-container");
     if (!container) {
-      console.warn("Carousel container not found");
       return;
     }
 

@@ -21,35 +21,35 @@ func getGroomsmen() []WeddingPartyMember {
 		{
 			Name:        "Ronnie Campbell",
 			Role:        "Best Man",
-			Photo:       "",
-			Description: "Ronnie and Andrew met freshman year at work study, and after a humanities class became friends. Ronnie is responsible for many of the full-time hobbies (Magic: The Gathering and World of Warcraft chief among them) that have dominated large amounts of Andrew's free time over the years. Andrew got his revenge though, Ronnie is getting into golf. Despite Andrew's best efforts they are best friends to this day.",
+			Photo:       "/static/images/wedding-party/ronnie.png",
+			Description: "Ronnie and Andrew met freshman year at work study, and after a humanities class became friends. Ronnie is responsible for many of the full-time hobbies (Magic: The Gathering and World of Warcraft chief among them) that have dominated large amounts of Andrew's free time over the years. Andrew got his revenge though, Ronnie is getting into golf. Despite Andrew's best efforts, they are best friends to this day.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Mike Alves",
 			Role:        "Groomsman",
-			Photo:       "",
-			Description: "A fellow Abingtonian, Mike and Andrew have known each other since middle school, but became close in college, playing too much Guitar Hero and eating too much pizza after calculus class freshman year. They were roommates for 3 years through senior year, alongside Dana.",
+			Photo:       "/static/images/wedding-party/mike_alves.jpg",
+			Description: "A fellow Abingtonian, Mike and Andrew have known each other since middle school, but became close in college, playing too much Guitar Hero and eating too much pizza after calculus class freshman year. Mike and Andrew communicate almost exclusively through stand-up comedy quotes and Family Guy style tangents (maybe someday they'll have AI powered cutaways) They were roommates for 3 years through senior year, alongside Dana.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Dana Roy",
 			Role:        "Groomsman",
-			Photo:       "",
-			Description: "Being freshman year roommates at Suffolk, Dana was very concerned with who was bringing the TV. Dana, Andrew, and Mike Alves all lived together sophomore through senior year at Suffolk.",
+			Photo:       "/static/images/wedding-party/dana.png",
+			Description: "Being freshman year roommates at Suffolk, Dana was very concerned with who was bringing the TV. Dana, Andrew, and Mike Alves all lived together sophomore through senior year at Suffolk (Dana gave it the college try keeping up in the Guitar Hero battles). If you're curious to find Dana at the wedding, follow the contagious laughter.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Mike Silva",
 			Role:        "Groomsman",
-			Photo:       "",
-			Description: "A fellow Suffolk alum, Mike and Andrew were introduced through Mike Alves in college. Mike and his wife Kasey introduced and set up Andrew and Molly on their first date, the \"group hang\" in which they bailed so Andrew and Molly would go on a date",
+			Photo:       "/static/images/wedding-party/mike_silva.jpg",
+			Description: "A fellow Suffolk alum, Mike and Andrew were introduced through Mike Alves in college. Mike and his wife Kasey introduced and set up Andrew and Molly on their first date, the \"group hang\" in which they bailed so Andrew and Molly would go on a date. Mike and Kasey are the go-to golf group, graciously hosting Andrew and Molly for 1 or 2 Cape golf outings each year.",
 			Side:        "groomsmen",
 		},
 		{
 			Name:        "Pete Smith",
 			Role:        "Groomsman",
-			Photo:       "",
+			Photo:       "/static/images/wedding-party/pete.jpg",
 			Description: "Molly's brother, Andrew's future brother-in-law, and the real reason Andrew popped the question. Pete and Andrew attend the Thanksgiving Eve Celtics game every year (schedule permitting), after which they grab Bova's desserts to bring home to Molly and spend quality time together (which she totally loves and isn't exhausted by).",
 			Side:        "groomsmen",
 		},
@@ -76,7 +76,7 @@ func getBridesmaids() []WeddingPartyMember {
 			Name:        "Kasey Silva",
 			Role:        "Bridesmaid",
 			Photo:       "/static/images/wedding-party/kasey.jpg",
-			Description: "We all owe Kasey a big thank you for being the orchestrater of Molly and Andrew’s relationship. Without her gentle nudge (“you two should date”), we wouldn’t be here celebrating! Kasey and Molly’s friendship has been cemented over the years through an intense love of Taylor Swift, countless rounds of golf, and a mimosa or two. A toast to Kasey for having the foresight to set her friends up!",
+			Description: "We all owe Kasey a big thank you for being the orchestrator of Molly and Andrew's relationship. Without her gentle nudge (“you two should date”), we wouldn’t be here celebrating! Kasey and Molly’s friendship has been cemented over the years through an intense love of Taylor Swift, countless rounds of golf, and a mimosa or two. A toast to Kasey for having the foresight to set her friends up!",
 			Side:        "bridesmaids",
 		},
 		{
@@ -113,6 +113,7 @@ templ WeddingPartySection() {
 				</div>
 			</div>
 		</section>
+		<script type="module" src="/static/js/wedding-party-lightbox.js"></script>
 	</div>
 }
 
@@ -128,17 +129,19 @@ templ renderMembers(members []WeddingPartyMember) {
 templ renderMember(member WeddingPartyMember, index int) {
 	<div class="flex flex-col items-center text-center rounded-lg p-6 shadow-md border border-gray-200 bg-white mb-8 hover:shadow-lg transition-shadow duration-200">
 		if member.Photo != "" {
-			<img
-				src={ member.Photo }
-				alt={ member.Name }
-				class="rounded-lg w-full max-w-48 h-auto shadow-md"
-				if index == 0 {
-					loading="eager"
-				} else {
-					loading="lazy"
-				}
-				decoding="async"
-			/>
+			<div class="wedding-party-photo">
+				<img
+					src={ member.Photo }
+					alt={ member.Name }
+					class="rounded-lg w-full max-w-48 h-auto shadow-md hover:shadow-xl transition-shadow duration-200"
+					if index == 0 {
+						loading="eager"
+					} else {
+						loading="lazy"
+					}
+					decoding="async"
+				/>
+			</div>
 		} else {
 			<img
 				src="/static/images/default-avatar.svg"
