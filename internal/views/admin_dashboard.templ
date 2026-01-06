@@ -1,0 +1,153 @@
+package views
+
+import (
+	"fmt"
+	"github.com/apkiernan/thedrewzers/internal/models"
+)
+
+templ AdminDashboard(userName string, stats *models.DashboardStats) {
+	@AdminLayout(userName, "Dashboard", adminDashboardContent(stats))
+}
+
+templ adminDashboardContent(stats *models.DashboardStats) {
+	<div>
+		<!-- Page Title -->
+		<div class="text-center mb-16">
+			<h2 class="text-2xl font-light text-gray-800 uppercase tracking-widest">Response Overview</h2>
+		</div>
+		<!-- Statistics Cards -->
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+			@statCard("Invited", fmt.Sprintf("%d", stats.TotalInvited), "Total households")
+			@statCard("Responded", fmt.Sprintf("%d", stats.TotalResponses), fmt.Sprintf("%.0f%% response rate", stats.ResponseRate))
+			@statCard("Attending", fmt.Sprintf("%d", stats.AttendingGuests), "Total guests")
+			@statCard("Declined", fmt.Sprintf("%d", stats.TotalDeclined), "Households")
+		</div>
+		<!-- Two Column Layout -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+			<!-- Response Breakdown -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
+				<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-6">Response Breakdown</h3>
+				<div class="space-y-5">
+					<div class="flex items-center justify-between">
+						<span class="text-base text-gray-600">Attending</span>
+						<div class="flex items-center">
+							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
+								if stats.TotalInvited > 0 {
+									<div
+										class="h-full bg-green-400 rounded-full"
+										style={ fmt.Sprintf("width: %d%%", stats.TotalAttending*100/stats.TotalInvited) }
+									></div>
+								}
+							</div>
+							<span class="text-base font-medium text-gray-800 w-8 text-right">{ fmt.Sprintf("%d", stats.TotalAttending) }</span>
+						</div>
+					</div>
+					<div class="flex items-center justify-between">
+						<span class="text-base text-gray-600">Declined</span>
+						<div class="flex items-center">
+							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
+								if stats.TotalInvited > 0 {
+									<div
+										class="h-full bg-red-300 rounded-full"
+										style={ fmt.Sprintf("width: %d%%", stats.TotalDeclined*100/stats.TotalInvited) }
+									></div>
+								}
+							</div>
+							<span class="text-base font-medium text-gray-800 w-8 text-right">{ fmt.Sprintf("%d", stats.TotalDeclined) }</span>
+						</div>
+					</div>
+					<div class="flex items-center justify-between">
+						<span class="text-base text-gray-600">Pending</span>
+						<div class="flex items-center">
+							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
+								if stats.TotalInvited > 0 {
+									<div
+										class="h-full bg-yellow-300 rounded-full"
+										style={ fmt.Sprintf("width: %d%%", stats.TotalPending*100/stats.TotalInvited) }
+									></div>
+								}
+							</div>
+							<span class="text-base font-medium text-gray-800 w-8 text-right">{ fmt.Sprintf("%d", stats.TotalPending) }</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Dietary Restrictions -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
+				<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-6">Dietary Restrictions</h3>
+				if len(stats.DietaryBreakdown) > 0 {
+					<ul class="space-y-3">
+						for restriction, count := range stats.DietaryBreakdown {
+							<li class="flex justify-between items-center py-2 border-b border-gray-50">
+								<span class="text-base text-gray-600 capitalize">{ restriction }</span>
+								<span class="text-base font-medium text-gray-800">{ fmt.Sprintf("%d", count) }</span>
+							</li>
+						}
+					</ul>
+				} else {
+					<p class="text-gray-400 text-base italic">No dietary restrictions reported yet</p>
+				}
+			</div>
+		</div>
+		<!-- Recent RSVPs -->
+		<div class="bg-white rounded-lg shadow-sm border border-gray-100">
+			<div class="px-8 py-6 border-b border-gray-100">
+				<h3 class="text-sm uppercase tracking-widest text-gray-500">Recent Responses</h3>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full">
+					<thead>
+						<tr class="border-b border-gray-100">
+							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Guest</th>
+							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Status</th>
+							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Party Size</th>
+							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Date</th>
+						</tr>
+					</thead>
+					<tbody>
+						if len(stats.RecentRSVPs) > 0 {
+							for _, rsvp := range stats.RecentRSVPs {
+								<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+									<td class="px-8 py-4 text-base text-gray-800">
+										{ rsvp.GuestName }
+									</td>
+									<td class="px-8 py-4">
+										if rsvp.Attending {
+											<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
+												Attending
+											</span>
+										} else {
+											<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700">
+												Declined
+											</span>
+										}
+									</td>
+									<td class="px-8 py-4 text-base text-gray-600">
+										{ fmt.Sprintf("%d", rsvp.PartySize) }
+									</td>
+									<td class="px-8 py-4 text-base text-gray-500">
+										{ rsvp.SubmittedAt.Format("Jan 2, 2006") }
+									</td>
+								</tr>
+							}
+						} else {
+							<tr>
+								<td colspan="4" class="px-8 py-12 text-center text-gray-400 text-base italic">
+									No responses yet
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+}
+
+templ statCard(title, value, subtitle string) {
+	<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+		<p class="text-xs uppercase tracking-widest text-gray-500 mb-2">{ title }</p>
+		<p class="text-3xl font-light text-gray-800 mb-1">{ value }</p>
+		<p class="text-xs text-gray-400">{ subtitle }</p>
+	</div>
+}

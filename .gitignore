@@ -30,3 +30,4 @@ vendor/
 
 # Local DynamoDB data
 .dynamodb-data/
+.env

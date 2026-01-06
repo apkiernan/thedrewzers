@@ -1,16 +1,16 @@
 # Development targets
-.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js db-start db-stop db-setup db-seed db-logs
+.PHONY: all tpl styles server watch-styles build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js scripts scripts-dev db-start db-stop db-setup db-seed db-logs
 
 # Default development target
 all: dev-build
 	@echo "Starting development servers..."
-	@make -j2 styles server
+	@make -j2 server
 
 # Prepare dist directory for development
-dev-build: tpl gallery-metadata optimize-images
+dev-build: tpl gallery-metadata optimize-images scripts-dev
 	@echo "Copying static assets to dist..."
 	@mkdir -p dist
-	@cp -r static/css static/js static/fonts static/data dist/ 2>/dev/null || true
+	@cp -r static/css static/fonts static/data dist/ 2>/dev/null || true
 	@cp -r static/images/wedding-party dist/images/ 2>/dev/null || true
 	@cp static/gallery-metadata.json dist/ 2>/dev/null || true
 	@echo "Development build complete!"
@@ -20,7 +20,7 @@ build:
 	go build -o bin/main ./cmd/main
 
 # Run local development server with hot reload
-server:
+server: styles scripts-dev
 	air
 
 # Generate templ templates
@@ -29,7 +29,10 @@ tpl:
 
 # Watch and compile styles
 styles:
-	npm run watch
+	npm run styles
+
+watch-styles:
+	npm run styles:watch
 
 # Generate gallery metadata
 gallery-metadata:
@@ -40,6 +43,21 @@ gallery-metadata:
 minify-js:
 	@echo "Minifying and fingerprinting JavaScript files..."
 	@go run cmd/minify-js/main.go
+
+# Build scripts for production: minify JS only (no unminified copies)
+scripts:
+	@echo "Building JavaScript files..."
+	@mkdir -p dist/js
+	@go run cmd/minify-js/main.go
+	@echo "JavaScript build complete!"
+
+# Build scripts for development: copy unminified + run minify
+scripts-dev:
+	@echo "Building JavaScript files for development..."
+	@mkdir -p dist/js
+	@cp -r static/js/* dist/js/
+	@go run cmd/minify-js/main.go
+	@echo "JavaScript build complete!"
 
 # Image optimization variables
 SOURCE_IMAGES=static/images
@@ -62,11 +80,12 @@ optimize-images:
 	@echo "Image optimization complete!"
 
 # Build static HTML files
-static-build: tpl optimize-images gallery-metadata minify-js
+static-build: tpl optimize-images gallery-metadata scripts
 	@echo "Building static site..."
 	@go run ./cmd/build
 	@echo "Copying static assets to dist..."
-	@cp -r static/* dist/
+	@cp -r static/css static/fonts static/data dist/ 2>/dev/null || true
+	@cp static/gallery-metadata.json dist/ 2>/dev/null || true
 	@echo "Static site ready in ./dist/"
 
 # Lambda Configuration

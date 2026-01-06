@@ -4,8 +4,9 @@
   "description": "Wedding website",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --minify",
-    "watch": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./dist/css/tailwind.css -c ./tailwind.config.js --minify && cp ./dist/css/tailwind.css ./static/css/tailwind.css",
+    "styles": "tailwindcss -i ./src/input.css -o ./dist/css/tailwind.css -c ./tailwind.config.js",
+    "styles:watch": "tailwindcss -i ./src/input.css -o ./dist/css/tailwind.css -c ./tailwind.config.js --watch",
     "lighthouse": "lhci autorun --config=.lighthouse/lighthouserc.json"
   },
   "repository": {

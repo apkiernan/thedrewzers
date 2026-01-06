@@ -7,19 +7,21 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/joho/godotenv"
 
 	"github.com/apkiernan/thedrewzers/internal/auth"
 	dbdynamo "github.com/apkiernan/thedrewzers/internal/db/dynamodb"
 	"github.com/apkiernan/thedrewzers/internal/handlers"
 	"github.com/apkiernan/thedrewzers/internal/logger"
+	"github.com/apkiernan/thedrewzers/internal/services"
 	"github.com/apkiernan/thedrewzers/internal/views"
 )
 
 func main() {
-	ctx := context.Background()
+	// Load .env file if present (ignored in production)
+	_ = godotenv.Load()
 
-	// Check if running in admin mode
-	adminMode := os.Getenv("ADMIN_MODE") == "true"
+	ctx := context.Background()
 
 	// Initialize DynamoDB client
 	var dynamoClient *dynamodb.Client
@@ -50,13 +52,12 @@ func main() {
 	fs := http.FileServer(http.Dir("./dist"))
 	server.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
-	if adminMode {
-		// Admin mode - serve admin routes
-		logger.Info("running in admin mode")
+	// Set up public routes
+	setupPublicRoutes(server, dynamoClient, dbConfig)
+
+	// Set up admin routes (if DynamoDB is available)
+	if dynamoClient != nil {
 		setupAdminRoutes(server, dynamoClient, dbConfig)
-	} else {
-		// Public mode - serve public wedding site
-		setupPublicRoutes(server, dynamoClient, dbConfig)
 	}
 
 	logger.Info("server started", "port", 8080, "static_dir", "./dist")
@@ -100,11 +101,6 @@ func setupPublicRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbC
 
 // setupAdminRoutes configures routes for the admin dashboard
 func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbConfig dbdynamo.Config) {
-	if dynamoClient == nil {
-		logger.Error("admin mode requires DynamoDB connection")
-		os.Exit(1)
-	}
-
 	// Initialize JWT service
 	jwtService, err := auth.NewJWTService()
 	if err != nil {
@@ -112,9 +108,17 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 		os.Exit(1)
 	}
 
-	// Initialize admin repository and handler
+	// Initialize repositories
 	adminRepo := dbdynamo.NewAdminRepository(dynamoClient, dbConfig.AdminsTable)
+	guestRepo := dbdynamo.NewGuestRepository(dynamoClient, dbConfig.GuestsTable)
+	rsvpRepo := dbdynamo.NewRSVPRepository(dynamoClient, dbConfig.RSVPsTable)
+
+	// Initialize services
+	statsService := services.NewStatsService(guestRepo, rsvpRepo)
+
+	// Initialize handlers
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
+	dashboardHandler := handlers.NewAdminDashboardHandler(statsService)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -124,11 +128,10 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 	// Protected admin routes (auth required)
 	requireAuth := auth.RequireAuth(jwtService)
 
-	// Dashboard placeholder - wrap with auth middleware
-	server.Handle("GET /dashboard", requireAuth(http.HandlerFunc(authHandler.HandleDashboardPlaceholder)))
-	server.Handle("GET /", requireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/dashboard", http.StatusFound)
-	})))
+	// Dashboard routes
+	server.Handle("GET /dashboard", requireAuth(http.HandlerFunc(dashboardHandler.HandleDashboard)))
+	server.Handle("GET /guests", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuests)))
+	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
 
 	logger.Info("admin routes enabled", "admins_table", dbConfig.AdminsTable)
 }
