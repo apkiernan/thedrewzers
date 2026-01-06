@@ -1,5 +1,5 @@
 # Development targets
-.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js
+.PHONY: all tpl styles server build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js db-start db-stop db-setup db-seed db-logs
 
 # Default development target
 all: dev-build
@@ -159,4 +159,45 @@ tf-plan:
 # Apply Terraform changes
 tf-apply:
 	cd terraform && terraform apply
+
+# ============================================
+# Local DynamoDB Development
+# ============================================
+
+# Start DynamoDB Local
+db-start:
+	@echo "Starting DynamoDB Local..."
+	@docker-compose up -d
+	@echo "DynamoDB Local running at http://localhost:8000"
+	@echo ""
+	@echo "Run 'make db-setup' to create tables"
+
+# Stop DynamoDB Local
+db-stop:
+	@echo "Stopping DynamoDB Local..."
+	@docker-compose down
+
+# Create local DynamoDB tables
+db-setup:
+	@go run ./cmd/setup-local-db
+
+# Seed local database with test data
+db-seed:
+	@go run ./cmd/seed-local-db
+
+# View DynamoDB Local logs
+db-logs:
+	@docker-compose logs -f dynamodb-local
+
+# Full local setup: start DB, create tables, seed data
+db-init: db-start
+	@echo "Waiting for DynamoDB Local to be ready..."
+	@sleep 2
+	@make db-setup
+	@make db-seed
+
+# Run local server with local DynamoDB
+server-local: db-start
+	@sleep 2
+	@DYNAMODB_ENDPOINT=http://localhost:8000 air
 
