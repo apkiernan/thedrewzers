@@ -49,7 +49,7 @@
     const attending = formData.get("attending") === "yes";
 
     const data = {
-      invitation_code: form.dataset.code,
+      guest_id: form.dataset.guestId,
       attending: attending,
       party_size: attending ? parseInt(formData.get("party_size"), 10) : 0,
       attendee_names: [],

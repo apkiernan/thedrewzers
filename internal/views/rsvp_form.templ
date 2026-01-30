@@ -15,7 +15,7 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 				<p class="text-gray-500 mt-2">We would be honored to have you celebrate with us</p>
 			</div>
 
-			<form id="rsvp-form" class="space-y-8" data-guest-id={ guest.GuestID } data-code={ guest.InvitationCode }>
+			<form id="rsvp-form" class="space-y-8" data-guest-id={ guest.GuestID }>
 				// Attending choice
 				<div class="text-center">
 					<p class="text-gray-700 mb-6">Will you be joining us?</p>
@@ -161,55 +161,118 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 	<script src="/static/js/rsvp.js"></script>
 }
 
-templ RSVPCodeEntry() {
+templ RSVPNameSearch() {
 	<div class="min-h-screen bg-white py-12">
 		<div class="max-w-md mx-auto px-6">
 			<div class="text-center mb-12">
 				<h1 class="script text-5xl md:text-6xl text-blue-300 mb-6 font-extralight">RSVP</h1>
-				<p class="text-gray-600">Please enter your invitation code</p>
+				<p class="text-gray-600">Enter your first and last name to find your invitation</p>
 			</div>
 
-			<form id="code-form" class="space-y-6">
+			<form id="name-search-form" class="space-y-6">
 				<div>
-					<label class="block text-gray-700 mb-2 text-center">Invitation Code</label>
+					<label class="block text-gray-700 mb-2 text-center">Your Name</label>
 					<input
 						type="text"
-						name="code"
-						id="invitation-code"
-						class="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent text-center text-2xl uppercase tracking-widest"
-						placeholder="ABCD1234"
-						maxlength="8"
-						autocomplete="off"
+						name="name"
+						id="guest-name"
+						class="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent text-center text-xl"
+						placeholder="First and Last Name"
+						autocomplete="name"
 						required
 					/>
 				</div>
 
 				<button
 					type="submit"
+					id="search-button"
 					class="w-full px-6 py-4 bg-blue-300 text-white rounded-lg hover:bg-blue-400 transition-colors text-lg"
 				>
-					Continue
+					Find My Invitation
 				</button>
 			</form>
 
+			<div id="search-results" class="mt-8 hidden"></div>
+
 			<p class="text-center text-sm text-gray-500 mt-8">
-				Your invitation code can be found on your invitation or by scanning the QR code.
+				Please enter your name as it appears on your invitation.
 			</p>
 		</div>
 	</div>
 
 	<script>
-		document.getElementById('code-form').addEventListener('submit', function(e) {
+		document.getElementById('name-search-form').addEventListener('submit', async function(e) {
 			e.preventDefault();
-			const code = document.getElementById('invitation-code').value.toUpperCase().trim();
-			if (code) {
-				window.location.href = '/rsvp?code=' + encodeURIComponent(code);
-			}
-		});
+			const name = document.getElementById('guest-name').value.trim();
+			if (!name) return;
 
-		// Auto-uppercase input
-		document.getElementById('invitation-code').addEventListener('input', function(e) {
-			e.target.value = e.target.value.toUpperCase();
+			const searchButton = document.getElementById('search-button');
+			const resultsDiv = document.getElementById('search-results');
+			searchButton.disabled = true;
+			searchButton.textContent = 'Searching...';
+			resultsDiv.classList.add('hidden');
+			resultsDiv.innerHTML = '';
+
+			try {
+				const response = await fetch('/api/rsvp/search', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name: name })
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.error || 'Search failed');
+				}
+
+				if (data.count === 0) {
+					// No matches found
+					resultsDiv.innerHTML = `
+						<div class="text-center">
+							<svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							<p class="text-gray-600 mb-2">We couldn't find your name on the guest list.</p>
+							<p class="text-gray-500 text-sm">Please check the spelling or contact us for help.</p>
+						</div>`;
+					resultsDiv.classList.remove('hidden');
+				} else if (data.count === 1) {
+					// Exactly one match — go straight to RSVP form
+					window.location.href = '/rsvp/form?id=' + encodeURIComponent(data.guests[0].guest_id);
+				} else {
+					// Multiple matches — show disambiguation
+					let html = `
+						<div class="text-center mb-4">
+							<p class="text-gray-600">We found a few matches &mdash; please select yourself:</p>
+						</div>
+						<div class="space-y-3">`;
+					data.guests.forEach(function(guest) {
+						const members = guest.household_members && guest.household_members.length > 0
+							? '<span class="text-sm text-gray-500 block mt-1">Household: ' + guest.household_members.join(', ') + '</span>'
+							: '';
+						html += `
+							<a href="/rsvp/form?id=${encodeURIComponent(guest.guest_id)}"
+							   class="block p-4 border border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer">
+								<span class="text-gray-800 font-medium">${guest.primary_guest}</span>
+								${members}
+							</a>`;
+					});
+					html += '</div>';
+					resultsDiv.innerHTML = html;
+					resultsDiv.classList.remove('hidden');
+				}
+			} catch (error) {
+				console.error('Search error:', error);
+				resultsDiv.innerHTML = `
+					<div class="text-center">
+						<p class="text-red-500">Sorry, something went wrong. Please try again.</p>
+					</div>`;
+				resultsDiv.classList.remove('hidden');
+			} finally {
+				searchButton.disabled = false;
+				searchButton.textContent = 'Find My Invitation';
+			}
 		});
 	</script>
 }
@@ -223,8 +286,8 @@ templ RSVPNotFound() {
 				</svg>
 			</div>
 			<h1 class="script text-5xl md:text-6xl text-blue-300 mb-6 font-extralight">Oops!</h1>
-			<p class="text-gray-600 mb-4">We couldn't find that invitation code.</p>
-			<p class="text-gray-500 mb-8">Please double-check the code on your invitation and try again.</p>
+			<p class="text-gray-600 mb-4">We couldn't find your name on the guest list.</p>
+			<p class="text-gray-500 mb-8">Please check the spelling or contact us for help.</p>
 			<a
 				href="/rsvp"
 				class="inline-block px-8 py-4 bg-blue-300 text-white rounded-lg hover:bg-blue-400 transition-colors"

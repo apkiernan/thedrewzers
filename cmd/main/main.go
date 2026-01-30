@@ -81,13 +81,21 @@ func setupPublicRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbC
 		rsvpHandler := handlers.NewRSVPHandler(guestRepo, rsvpRepo)
 
 		server.HandleFunc("GET /rsvp", rsvpHandler.HandleRSVPPage)
+		server.HandleFunc("GET /rsvp/form", rsvpHandler.HandleRSVPForm)
 		server.HandleFunc("GET /rsvp/success", rsvpHandler.HandleRSVPSuccess)
+		server.HandleFunc("POST /api/rsvp/search", rsvpHandler.HandleRSVPSearch)
 		server.HandleFunc("POST /api/rsvp/submit", rsvpHandler.HandleRSVPSubmit)
 		logger.Info("rsvp routes enabled", "guests_table", dbConfig.GuestsTable, "rsvps_table", dbConfig.RSVPsTable)
 	} else {
 		// Fallback handlers when DynamoDB is not available
 		server.HandleFunc("GET /rsvp", func(w http.ResponseWriter, r *http.Request) {
-			views.App(views.RSVPCodeEntry()).Render(r.Context(), w)
+			views.App(views.RSVPNameSearch()).Render(r.Context(), w)
+		})
+		server.HandleFunc("GET /rsvp/form", func(w http.ResponseWriter, r *http.Request) {
+			views.App(views.RSVPNotFound()).Render(r.Context(), w)
+		})
+		server.HandleFunc("POST /api/rsvp/search", func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, `{"error": "RSVP system not configured"}`, http.StatusServiceUnavailable)
 		})
 		server.HandleFunc("GET /rsvp/success", func(w http.ResponseWriter, r *http.Request) {
 			views.App(views.RSVPSuccess()).Render(r.Context(), w)

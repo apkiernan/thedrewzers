@@ -29,7 +29,7 @@ type Address struct {
 
 // RSVPRequest represents the incoming RSVP form submission
 type RSVPRequest struct {
-	InvitationCode      string   `json:"invitation_code"`
+	GuestID             string   `json:"guest_id"`
 	Attending           bool     `json:"attending"`
 	PartySize           int      `json:"party_size"`
 	AttendeeNames       []string `json:"attendee_names"`

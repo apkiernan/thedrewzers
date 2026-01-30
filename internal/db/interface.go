@@ -25,6 +25,9 @@ type GuestRepository interface {
 
 	// ListGuests returns all guests
 	ListGuests(ctx context.Context) ([]*models.Guest, error)
+
+	// SearchGuestsByName finds guests matching the given name (case-insensitive, partial match on primary_guest or household_members)
+	SearchGuestsByName(ctx context.Context, name string) ([]*models.Guest, error)
 }
 
 // RSVPRepository defines operations for RSVP data persistence

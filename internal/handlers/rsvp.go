@@ -28,22 +28,57 @@ func NewRSVPHandler(guestRepo db.GuestRepository, rsvpRepo db.RSVPRepository) *R
 	}
 }
 
-// HandleRSVPPage displays the RSVP form or code entry page
+// HandleRSVPPage displays the RSVP name search form
 func (h *RSVPHandler) HandleRSVPPage(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		// Show code entry form
-		views.App(views.RSVPCodeEntry()).Render(r.Context(), w)
+	views.App(views.RSVPNameSearch()).Render(r.Context(), w)
+}
+
+// HandleRSVPSearch handles name-based guest search
+func (h *RSVPHandler) HandleRSVPSearch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Normalize code to uppercase
-	code = strings.ToUpper(strings.TrimSpace(code))
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, "Invalid request format", http.StatusBadRequest)
+		return
+	}
 
-	// Look up guest by invitation code
-	guest, err := h.guestRepo.GetGuestByInvitationCode(r.Context(), code)
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		writeJSONError(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+
+	guests, err := h.guestRepo.SearchGuestsByName(r.Context(), name)
 	if err != nil {
-		logger.Warn("guest not found", "code", code, "error", err)
+		logger.Error("failed to search guests", "name", name, "error", err)
+		writeJSONError(w, "Search failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"guests": guests,
+		"count":  len(guests),
+	})
+}
+
+// HandleRSVPForm displays the RSVP form for a specific guest
+func (h *RSVPHandler) HandleRSVPForm(w http.ResponseWriter, r *http.Request) {
+	guestID := r.URL.Query().Get("id")
+	if guestID == "" {
+		http.Redirect(w, r, "/rsvp", http.StatusFound)
+		return
+	}
+
+	guest, err := h.guestRepo.GetGuest(r.Context(), guestID)
+	if err != nil {
+		logger.Warn("guest not found for form", "guest_id", guestID, "error", err)
 		views.App(views.RSVPNotFound()).Render(r.Context(), w)
 		return
 	}
@@ -75,14 +110,18 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Normalize invitation code
-	req.InvitationCode = strings.ToUpper(strings.TrimSpace(req.InvitationCode))
+	// Validate guest ID
+	req.GuestID = strings.TrimSpace(req.GuestID)
+	if req.GuestID == "" {
+		writeJSONError(w, "Guest ID is required", http.StatusBadRequest)
+		return
+	}
 
 	// Validate guest exists
-	guest, err := h.guestRepo.GetGuestByInvitationCode(r.Context(), req.InvitationCode)
+	guest, err := h.guestRepo.GetGuest(r.Context(), req.GuestID)
 	if err != nil {
-		logger.Warn("invalid invitation code", "code", req.InvitationCode, "error", err)
-		writeJSONError(w, "Invalid invitation code", http.StatusBadRequest)
+		logger.Warn("guest not found", "guest_id", req.GuestID, "error", err)
+		writeJSONError(w, "Guest not found", http.StatusBadRequest)
 		return
 	}
 

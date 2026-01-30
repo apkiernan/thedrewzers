@@ -3,6 +3,7 @@ package dynamodb
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -168,4 +169,41 @@ func (r *GuestRepository) ListGuests(ctx context.Context) ([]*models.Guest, erro
 	}
 
 	return guests, nil
+}
+
+// SearchGuestsByName finds guests matching the given name (case-insensitive, partial match)
+func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) ([]*models.Guest, error) {
+	// Scan all guests (small dataset, scan is fine)
+	allGuests, err := r.ListGuests(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("searching guests by name: %w", err)
+	}
+
+	nameLower := strings.ToLower(strings.TrimSpace(name))
+	if nameLower == "" {
+		return nil, nil
+	}
+
+	var matches []*models.Guest
+	for _, guest := range allGuests {
+		// Check primary guest name
+		if strings.Contains(strings.ToLower(guest.PrimaryGuest), nameLower) {
+			matches = append(matches, guest)
+			continue
+		}
+
+		// Check household members
+		matched := false
+		for _, member := range guest.HouseholdMembers {
+			if strings.Contains(strings.ToLower(member), nameLower) {
+				matched = true
+				break
+			}
+		}
+		if matched {
+			matches = append(matches, guest)
+		}
+	}
+
+	return matches, nil
 }
