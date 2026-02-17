@@ -3,135 +3,174 @@
 (function () {
   "use strict";
 
-  // Toggle attending details visibility
+  const mealOptions = ["chicken", "steak", "vegetarian"];
+
   function toggleAttendingDetails(show) {
     const details = document.getElementById("attending-details");
-    if (details) {
-      if (show) {
-        details.classList.remove("hidden");
-      } else {
-        details.classList.add("hidden");
-      }
-    }
+    if (!details) return;
+    details.classList.toggle("hidden", !show);
   }
 
-  // Update attendee name inputs based on party size
-  function updateAttendeeNames(partySize) {
-    const container = document.getElementById("attendee-names");
+  function mealLabel(meal) {
+    if (!meal) return "";
+    return meal.charAt(0).toUpperCase() + meal.slice(1);
+  }
+
+  function currentAttendees() {
+    const rows = document.querySelectorAll("#attendee-rows .attendee-row");
+    return Array.from(rows).map((row) => ({
+      name: (row.querySelector(".attendee-name")?.value || "").trim(),
+      meal: (row.querySelector(".attendee-meal")?.value || "").trim().toLowerCase(),
+    }));
+  }
+
+  function createAttendeeRow(index, attendee) {
+    const row = document.createElement("div");
+    row.className = "attendee-row grid grid-cols-1 md:grid-cols-2 gap-3";
+    row.dataset.index = String(index);
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className =
+      "attendee-name w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent";
+    nameInput.placeholder = `Guest ${index + 1} name`;
+    nameInput.value = attendee.name || "";
+
+    const mealSelect = document.createElement("select");
+    mealSelect.className =
+      "attendee-meal w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select a meal";
+    mealSelect.appendChild(placeholder);
+
+    mealOptions.forEach((meal) => {
+      const option = document.createElement("option");
+      option.value = meal;
+      option.textContent = mealLabel(meal);
+      if ((attendee.meal || "").toLowerCase() === meal) {
+        option.selected = true;
+      }
+      mealSelect.appendChild(option);
+    });
+
+    row.appendChild(nameInput);
+    row.appendChild(mealSelect);
+    return row;
+  }
+
+  function updateAttendeeRows(partySize) {
+    const container = document.getElementById("attendee-rows");
     if (!container) return;
 
-    const currentInputs = container.querySelectorAll("input");
-    const currentCount = currentInputs.length;
-    const newCount = parseInt(partySize, 10);
+    const count = Number.parseInt(partySize, 10);
+    if (!Number.isFinite(count) || count < 1) return;
 
-    if (newCount > currentCount) {
-      // Add more inputs
-      for (let i = currentCount; i < newCount; i++) {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.name = "attendee_names[]";
-        input.placeholder = `Guest ${i + 1} name`;
-        input.className =
-          "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent";
-        container.appendChild(input);
-      }
-    } else if (newCount < currentCount) {
-      // Remove extra inputs
-      for (let i = currentCount - 1; i >= newCount; i--) {
-        container.removeChild(currentInputs[i]);
-      }
+    const existing = currentAttendees();
+    container.innerHTML = "";
+
+    for (let i = 0; i < count; i++) {
+      const attendee = existing[i] || { name: "", meal: "" };
+      container.appendChild(createAttendeeRow(i, attendee));
     }
   }
 
-  // Gather form data for submission
   function gatherFormData(form) {
     const formData = new FormData(form);
     const attending = formData.get("attending") === "yes";
 
     const data = {
       guest_id: form.dataset.guestId,
-      attending: attending,
-      party_size: attending ? parseInt(formData.get("party_size"), 10) : 0,
-      attendee_names: [],
-      dietary_restrictions: [],
+      attending,
+      party_size: 0,
+      attendees: [],
       special_requests: "",
     };
 
     if (attending) {
-      // Get attendee names
-      const names = formData.getAll("attendee_names[]");
-      data.attendee_names = names.filter((name) => name.trim() !== "");
-
-      // Get dietary restrictions (split by newlines)
-      const dietary = formData.get("dietary_restrictions");
-      if (dietary) {
-        data.dietary_restrictions = dietary
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line !== "");
-      }
-
-      // Get special requests
+      const attendees = currentAttendees();
+      data.attendees = attendees;
+      data.party_size = attendees.length;
       data.special_requests = formData.get("special_requests") || "";
     }
 
     return data;
   }
 
-  // Handle form submission
+  function validateAttendees(attendees) {
+    if (attendees.length === 0) {
+      return "Please add at least one attending guest.";
+    }
+
+    for (let i = 0; i < attendees.length; i++) {
+      const attendee = attendees[i];
+      if (!attendee.name) {
+        return `Please enter a name for guest ${i + 1}.`;
+      }
+      if (!attendee.meal) {
+        return `Please select a meal for ${attendee.name || `guest ${i + 1}`}.`;
+      }
+      if (!mealOptions.includes(attendee.meal)) {
+        return `Please choose a valid meal option for ${attendee.name}.`;
+      }
+    }
+
+    return "";
+  }
+
   async function handleFormSubmit(e) {
     e.preventDefault();
 
     const form = e.target;
     const submitButton = document.getElementById("submit-button");
 
-    // Validate attending choice is selected
     const attending = form.querySelector('input[name="attending"]:checked');
     if (!attending) {
       alert("Please select whether you will be attending.");
       return;
     }
 
-    // Disable submit button
+    const payload = gatherFormData(form);
+    if (payload.attending) {
+      const attendeeError = validateAttendees(payload.attendees);
+      if (attendeeError) {
+        alert(attendeeError);
+        return;
+      }
+    }
+
     submitButton.disabled = true;
     const originalText = submitButton.textContent;
     submitButton.textContent = "Submitting...";
 
     try {
-      const data = gatherFormData(form);
-
       const response = await fetch("/api/rsvp/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
-
       if (response.ok && result.success) {
-        // Redirect to success page
         window.location.href = "/rsvp/success";
       } else {
         throw new Error(result.error || "Failed to submit RSVP");
       }
     } catch (error) {
       console.error("RSVP submission error:", error);
-      alert(
-        "Sorry, there was an error submitting your RSVP. Please try again."
-      );
+      alert("Sorry, there was an error submitting your RSVP. Please try again.");
       submitButton.disabled = false;
       submitButton.textContent = originalText;
     }
   }
 
-  // Initialize the form
   function init() {
     const form = document.getElementById("rsvp-form");
     if (!form) return;
 
-    // Handle attending radio button changes
     const attendingRadios = form.querySelectorAll('input[name="attending"]');
     attendingRadios.forEach((radio) => {
       radio.addEventListener("change", function () {
@@ -139,39 +178,24 @@
       });
     });
 
-    // Handle party size changes
     const partySizeSelect = document.getElementById("party-size-select");
     if (partySizeSelect) {
       partySizeSelect.addEventListener("change", function () {
-        updateAttendeeNames(this.value);
+        updateAttendeeRows(this.value);
       });
     }
 
-    // Handle form submission
     form.addEventListener("submit", handleFormSubmit);
 
-    // Set initial state based on existing selection
     const checkedRadio = form.querySelector('input[name="attending"]:checked');
     if (checkedRadio) {
       toggleAttendingDetails(checkedRadio.value === "yes");
-
-      // Initialize attendee names if attending
       if (checkedRadio.value === "yes" && partySizeSelect) {
-        // Give a small delay to ensure DOM is ready
-        setTimeout(() => {
-          const currentInputs = document.querySelectorAll(
-            "#attendee-names input"
-          );
-          const partySize = parseInt(partySizeSelect.value, 10);
-          if (currentInputs.length < partySize) {
-            updateAttendeeNames(partySize);
-          }
-        }, 0);
+        updateAttendeeRows(partySizeSelect.value);
       }
     }
   }
 
-  // Run initialization when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
