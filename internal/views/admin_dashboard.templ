@@ -72,20 +72,20 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 					</div>
 				</div>
 			</div>
-			<!-- Dietary Restrictions -->
+			<!-- Meal Selections -->
 			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
-				<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-6">Dietary Restrictions</h3>
-				if len(stats.DietaryBreakdown) > 0 {
+				<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-6">Meal Selections</h3>
+				if len(stats.MealBreakdown) > 0 {
 					<ul class="space-y-3">
-						for restriction, count := range stats.DietaryBreakdown {
+						for meal, count := range stats.MealBreakdown {
 							<li class="flex justify-between items-center py-2 border-b border-gray-50">
-								<span class="text-base text-gray-600 capitalize">{ restriction }</span>
+								<span class="text-base text-gray-600 capitalize">{ meal }</span>
 								<span class="text-base font-medium text-gray-800">{ fmt.Sprintf("%d", count) }</span>
 							</li>
 						}
 					</ul>
 				} else {
-					<p class="text-gray-400 text-base italic">No dietary restrictions reported yet</p>
+					<p class="text-gray-400 text-base italic">No meal selections reported yet</p>
 				}
 			</div>
 		</div>

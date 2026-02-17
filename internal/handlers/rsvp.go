@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,6 +19,15 @@ import (
 type RSVPHandler struct {
 	guestRepo db.GuestRepository
 	rsvpRepo  db.RSVPRepository
+}
+
+var allowedMealOptions = []string{"Roasted Boneless Chicken Breast", "Grilled Brandt Farms 10z NY Strip", "Roasted Cauliflower Al Pastor (GF-V)"}
+
+type guestSearchResult struct {
+	GuestID          string   `json:"guest_id"`
+	PrimaryGuest     string   `json:"primary_guest"`
+	HouseholdMembers []string `json:"household_members"`
+	MaxPartySize     int      `json:"max_party_size"`
 }
 
 // NewRSVPHandler creates a new RSVPHandler with the given repositories
@@ -61,10 +71,20 @@ func (h *RSVPHandler) HandleRSVPSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results := make([]guestSearchResult, 0, len(guests))
+	for _, guest := range guests {
+		results = append(results, guestSearchResult{
+			GuestID:          guest.GuestID,
+			PrimaryGuest:     guest.PrimaryGuest,
+			HouseholdMembers: guest.HouseholdMembers,
+			MaxPartySize:     guest.MaxPartySize,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"guests": guests,
-		"count":  len(guests),
+		"guests": results,
+		"count":  len(results),
 	})
 }
 
@@ -92,7 +112,16 @@ func (h *RSVPHandler) HandleRSVPForm(w http.ResponseWriter, r *http.Request) {
 
 // HandleRSVPSuccess displays the success confirmation page
 func (h *RSVPHandler) HandleRSVPSuccess(w http.ResponseWriter, r *http.Request) {
-	views.App(views.RSVPSuccess()).Render(r.Context(), w)
+	var attending *bool
+	switch strings.ToLower(strings.TrimSpace(r.URL.Query().Get("attending"))) {
+	case "yes", "true", "1":
+		v := true
+		attending = &v
+	case "no", "false", "0":
+		v := false
+		attending = &v
+	}
+	views.App(views.RSVPSuccess(attending)).Render(r.Context(), w)
 }
 
 // HandleRSVPSubmit processes RSVP form submissions
@@ -125,15 +154,11 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate party size
-	if req.Attending && req.PartySize > guest.MaxPartySize {
-		writeJSONError(w, "Party size exceeds maximum allowed", http.StatusBadRequest)
+	// Validate and normalize attendees for attending guests.
+	attendees, partySize, validationErr := validateAttendees(req, guest.MaxPartySize)
+	if validationErr != "" {
+		writeJSONError(w, validationErr, http.StatusBadRequest)
 		return
-	}
-
-	// Validate party size is at least 1 if attending
-	if req.Attending && req.PartySize < 1 {
-		req.PartySize = 1
 	}
 
 	// Build RSVP record
@@ -142,8 +167,9 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 		RSVPID:              uuid.New().String(),
 		GuestID:             guest.GuestID,
 		Attending:           req.Attending,
-		PartySize:           req.PartySize,
-		AttendeeNames:       req.AttendeeNames,
+		PartySize:           partySize,
+		Attendees:           attendees,
+		AttendeeNames:       attendeeNames(attendees),
 		DietaryRestrictions: req.DietaryRestrictions,
 		SpecialRequests:     req.SpecialRequests,
 		SubmittedAt:         now,
@@ -155,6 +181,7 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 	// If not attending, clear party details
 	if !req.Attending {
 		rsvp.PartySize = 0
+		rsvp.Attendees = nil
 		rsvp.AttendeeNames = nil
 		rsvp.DietaryRestrictions = nil
 		rsvp.SpecialRequests = ""
@@ -183,9 +210,66 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "RSVP submitted successfully",
+		"success":   true,
+		"message":   "RSVP submitted successfully",
+		"attending": rsvp.Attending,
 	})
+}
+
+func validateAttendees(req models.RSVPRequest, maxPartySize int) ([]models.RSVPAttendee, int, string) {
+	if !req.Attending {
+		return nil, 0, ""
+	}
+
+	attendees := make([]models.RSVPAttendee, 0, len(req.Attendees))
+	for _, attendee := range req.Attendees {
+		name := strings.TrimSpace(attendee.Name)
+		meal := strings.ToLower(strings.TrimSpace(attendee.Meal))
+		if name == "" {
+			return nil, 0, "Each attending guest must include a name"
+		}
+		if meal == "" {
+			return nil, 0, "Each attending guest must select a meal"
+		}
+		if !slices.Contains(allowedMealOptions, meal) {
+			return nil, 0, "One or more meal selections are invalid"
+		}
+		attendees = append(attendees, models.RSVPAttendee{
+			Name: name,
+			Meal: meal,
+		})
+	}
+
+	if len(attendees) == 0 && len(req.AttendeeNames) > 0 {
+		return nil, 0, "Each attending guest must select a meal"
+	}
+	if len(attendees) == 0 {
+		return nil, 0, "At least one attending guest is required"
+	}
+
+	partySize := req.PartySize
+	if partySize == 0 {
+		partySize = len(attendees)
+	}
+	if partySize < 1 {
+		return nil, 0, "Party size must be at least 1"
+	}
+	if partySize > maxPartySize {
+		return nil, 0, "Party size exceeds maximum allowed"
+	}
+	if len(attendees) != partySize {
+		return nil, 0, "Guest count and party size must match"
+	}
+
+	return attendees, partySize, ""
+}
+
+func attendeeNames(attendees []models.RSVPAttendee) []string {
+	names := make([]string, 0, len(attendees))
+	for _, attendee := range attendees {
+		names = append(names, attendee.Name)
+	}
+	return names
 }
 
 // getClientIP extracts the client IP from the request, checking X-Forwarded-For header first

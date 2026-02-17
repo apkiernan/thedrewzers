@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"strings"
 
@@ -42,23 +43,22 @@ func (s *StatsService) GetDashboardStats(ctx context.Context) (*models.Dashboard
 	}
 
 	stats := &models.DashboardStats{
-		TotalInvited:     len(guests),
-		TotalResponses:   len(rsvps),
-		DietaryBreakdown: make(map[string]int),
-		RecentRSVPs:      make([]models.RecentRSVP, 0),
+		TotalInvited:   len(guests),
+		TotalResponses: len(rsvps),
+		MealBreakdown:  make(map[string]int),
+		RecentRSVPs:    make([]models.RecentRSVP, 0),
 	}
 
-	// Calculate attending/declined and dietary restrictions
+	// Calculate attending/declined and meal selections
 	for _, rsvp := range rsvps {
 		if rsvp.Attending {
 			stats.TotalAttending++
 			stats.AttendingGuests += rsvp.PartySize
 
-			// Count dietary restrictions
-			for _, restriction := range rsvp.DietaryRestrictions {
-				normalized := strings.TrimSpace(strings.ToLower(restriction))
+			for _, attendee := range rsvp.Attendees {
+				normalized := strings.TrimSpace(strings.ToLower(attendee.Meal))
 				if normalized != "" {
-					stats.DietaryBreakdown[normalized]++
+					stats.MealBreakdown[normalized]++
 				}
 			}
 		} else {
@@ -133,4 +133,25 @@ func (s *StatsService) GetGuestsWithRSVPs(ctx context.Context) ([]*models.GuestW
 	}
 
 	return result, nil
+}
+
+// GetGuestWithRSVP returns one guest joined with their RSVP (if present).
+func (s *StatsService) GetGuestWithRSVP(ctx context.Context, guestID string) (*models.GuestWithRSVP, error) {
+	guest, err := s.guestRepo.GetGuest(ctx, guestID)
+	if err != nil {
+		return nil, err
+	}
+
+	rsvp, err := s.rsvpRepo.GetRSVPByGuestID(ctx, guestID)
+	if err != nil && !errors.Is(err, models.ErrRSVPNotFound) {
+		return nil, err
+	}
+	if errors.Is(err, models.ErrRSVPNotFound) {
+		rsvp = nil
+	}
+
+	return &models.GuestWithRSVP{
+		Guest: guest,
+		RSVP:  rsvp,
+	}, nil
 }

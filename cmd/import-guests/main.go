@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 
 	dbdynamo "github.com/apkiernan/thedrewzers/internal/db/dynamodb"
+	"github.com/apkiernan/thedrewzers/internal/invite"
 	"github.com/apkiernan/thedrewzers/internal/models"
 )
 
@@ -109,48 +109,38 @@ func parseCSV(path string) ([]*models.Guest, error) {
 		return nil, fmt.Errorf("CSV must have header row and at least one data row")
 	}
 
-	// Validate header
-	header := records[0]
-	expectedCols := []string{"primary_guest", "household_members", "email", "max_party_size", "street", "city", "state", "zip"}
-	if len(header) < len(expectedCols) {
-		return nil, fmt.Errorf("CSV must have at least %d columns: %s", len(expectedCols), strings.Join(expectedCols, ", "))
+	headerIndex := csvHeaderIndex(records[0])
+	if _, ok := headerIndex["primary_guest"]; !ok {
+		return nil, fmt.Errorf("CSV must include primary_guest column")
 	}
 
 	var guests []*models.Guest
 	for i, record := range records[1:] { // Skip header
 		rowNum := i + 2 // 1-indexed, accounting for header
 
-		if len(record) < 8 {
-			log.Printf("Warning: Skipping row %d - only %d columns (need 8)", rowNum, len(record))
+		primaryGuest := csvCell(record, headerIndex, "primary_guest")
+		if primaryGuest == "" {
 			continue
 		}
 
-		// Skip empty rows
-		if strings.TrimSpace(record[0]) == "" {
-			continue
-		}
+		maxPartySize := normalizeMaxPartySize(csvCell(record, headerIndex, "max_party_size"))
 
-		maxPartySize, err := strconv.Atoi(strings.TrimSpace(record[3]))
-		if err != nil || maxPartySize < 1 {
-			maxPartySize = 1
-		}
-
-		code, err := generateInvitationCode()
+		code, err := invite.GenerateCode()
 		if err != nil {
 			return nil, fmt.Errorf("generating invitation code for row %d: %w", rowNum, err)
 		}
 
 		guest := &models.Guest{
 			InvitationCode:   code,
-			PrimaryGuest:     strings.TrimSpace(record[0]),
-			HouseholdMembers: parseHouseholdMembers(record[1]),
-			Email:            strings.TrimSpace(record[2]),
+			PrimaryGuest:     primaryGuest,
+			HouseholdMembers: invite.ParseHouseholdMembers(csvCell(record, headerIndex, "household_members")),
+			Email:            csvCell(record, headerIndex, "email"),
 			MaxPartySize:     maxPartySize,
 			Address: models.Address{
-				Street:  strings.TrimSpace(record[4]),
-				City:    strings.TrimSpace(record[5]),
-				State:   strings.TrimSpace(record[6]),
-				Zip:     strings.TrimSpace(record[7]),
+				Street:  csvCell(record, headerIndex, "street"),
+				City:    csvCell(record, headerIndex, "city"),
+				State:   csvCell(record, headerIndex, "state"),
+				Zip:     csvCell(record, headerIndex, "zip"),
 				Country: "USA",
 			},
 		}
@@ -165,35 +155,32 @@ func parseCSV(path string) ([]*models.Guest, error) {
 	return guests, nil
 }
 
-// generateInvitationCode creates a cryptographically secure 8-character code
-// Uses charset without ambiguous characters (no I/O/0/1) for better readability
-func generateInvitationCode() (string, error) {
-	const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-	b := make([]byte, 8)
-
-	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("reading random bytes: %w", err)
-	}
-
-	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
-	}
-
-	return string(b), nil
-}
-
-func parseHouseholdMembers(members string) []string {
-	members = strings.TrimSpace(members)
-	if members == "" {
-		return []string{}
-	}
-
-	parts := strings.Split(members, ";")
-	result := make([]string, 0, len(parts))
-	for _, p := range parts {
-		if trimmed := strings.TrimSpace(p); trimmed != "" {
-			result = append(result, trimmed)
+func csvHeaderIndex(header []string) map[string]int {
+	index := make(map[string]int, len(header))
+	for i, column := range header {
+		normalized := strings.ToLower(strings.TrimSpace(column))
+		if normalized != "" {
+			index[normalized] = i
 		}
 	}
-	return result
+	return index
+}
+
+func csvCell(row []string, header map[string]int, column string) string {
+	idx, ok := header[column]
+	if !ok || idx < 0 || idx >= len(row) {
+		return ""
+	}
+	return strings.TrimSpace(row[idx])
+}
+
+func normalizeMaxPartySize(raw string) int {
+	parsed, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return 1
+	}
+	if parsed <= 1 {
+		return 1
+	}
+	return 2
 }

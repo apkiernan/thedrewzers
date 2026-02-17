@@ -3,7 +3,11 @@
 (function () {
   "use strict";
 
-  const mealOptions = ["chicken", "steak", "vegetarian"];
+  const mealOptions = [
+    "Roasted Boneless Chicken Breast",
+    "Grilled Brandt Farms 10z NY Strip",
+    "Roasted Cauliflower Al Pastor (GF-V)",
+  ];
 
   function toggleAttendingDetails(show) {
     const details = document.getElementById("attending-details");
@@ -20,7 +24,9 @@
     const rows = document.querySelectorAll("#attendee-rows .attendee-row");
     return Array.from(rows).map((row) => ({
       name: (row.querySelector(".attendee-name")?.value || "").trim(),
-      meal: (row.querySelector(".attendee-meal")?.value || "").trim().toLowerCase(),
+      meal: (row.querySelector(".attendee-meal")?.value || "")
+        .trim()
+        .toLowerCase(),
     }));
   }
 
@@ -155,13 +161,16 @@
 
       const result = await response.json();
       if (response.ok && result.success) {
-        window.location.href = "/rsvp/success";
+        const attendingValue = result.attending ? "yes" : "no";
+        window.location.href = `/rsvp/success?attending=${encodeURIComponent(attendingValue)}`;
       } else {
         throw new Error(result.error || "Failed to submit RSVP");
       }
     } catch (error) {
       console.error("RSVP submission error:", error);
-      alert("Sorry, there was an error submitting your RSVP. Please try again.");
+      alert(
+        "Sorry, there was an error submitting your RSVP. Please try again.",
+      );
       submitButton.disabled = false;
       submitButton.textContent = originalText;
     }

@@ -1,5 +1,5 @@
-primary_guest,household_members,email,max_party_size,street,city,state,zip
-"John & Jane Smith","","john.smith@email.com",2,"123 Main Street","Boston","MA","02101"
-"Bob Johnson","Mary Johnson;Billy Johnson","bob.johnson@email.com",3,"456 Oak Avenue","Cambridge","MA","02139"
-"Sarah Williams","","sarah.w@email.com",1,"789 Pine Lane","Somerville","MA","02143"
-"The Martinez Family","Carlos Martinez;Maria Martinez;Sofia Martinez","martinez.family@email.com",4,"321 Elm Street","Brookline","MA","02446"
+primary_guest,household_members,max_party_size
+"John & Jane Smith","",2
+"Bob Johnson","Mary Johnson;Billy Johnson",2
+"Sarah Williams","",1
+"The Martinez Family","Carlos Martinez;Maria Martinez;Sofia Martinez",2

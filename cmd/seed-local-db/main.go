@@ -108,10 +108,10 @@ func main() {
 	fmt.Println()
 	fmt.Println("Done! Test guests added.")
 	fmt.Println()
-	fmt.Println("Test invitation codes:")
+	fmt.Println("Test households:")
 	fmt.Println("  TESTCODE  - John Smith (1 guest max)")
 	fmt.Println("  COUPLE23  - Jane & Bob Johnson (2 guests max)")
 	fmt.Println("  FAMILY44  - The Martinez Family (4 guests max)")
 	fmt.Println()
-	fmt.Println("Try: http://localhost:8080/rsvp?code=TESTCODE")
+	fmt.Println("Try: http://localhost:8080/rsvp")
 }

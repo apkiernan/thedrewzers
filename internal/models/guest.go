@@ -29,25 +29,33 @@ type Address struct {
 
 // RSVPRequest represents the incoming RSVP form submission
 type RSVPRequest struct {
-	GuestID             string   `json:"guest_id"`
-	Attending           bool     `json:"attending"`
-	PartySize           int      `json:"party_size"`
-	AttendeeNames       []string `json:"attendee_names"`
-	DietaryRestrictions []string `json:"dietary_restrictions"`
-	SpecialRequests     string   `json:"special_requests"`
+	GuestID             string         `json:"guest_id"`
+	Attending           bool           `json:"attending"`
+	PartySize           int            `json:"party_size"`
+	Attendees           []RSVPAttendee `json:"attendees"`
+	AttendeeNames       []string       `json:"attendee_names"`
+	DietaryRestrictions []string       `json:"dietary_restrictions"`
+	SpecialRequests     string         `json:"special_requests"`
+}
+
+// RSVPAttendee represents one attending guest and their meal choice.
+type RSVPAttendee struct {
+	Name string `json:"name" dynamodbav:"name"`
+	Meal string `json:"meal" dynamodbav:"meal"`
 }
 
 // RSVP represents a guest's response to the wedding invitation
 type RSVP struct {
-	RSVPID              string    `json:"rsvp_id" dynamodbav:"rsvp_id"`
-	GuestID             string    `json:"guest_id" dynamodbav:"guest_id"`
-	Attending           bool      `json:"attending" dynamodbav:"attending"`
-	PartySize           int       `json:"party_size" dynamodbav:"party_size"`
-	AttendeeNames       []string  `json:"attendee_names" dynamodbav:"attendee_names"`
-	DietaryRestrictions []string  `json:"dietary_restrictions" dynamodbav:"dietary_restrictions"`
-	SpecialRequests     string    `json:"special_requests,omitempty" dynamodbav:"special_requests,omitempty"`
-	SubmittedAt         time.Time `json:"submitted_at" dynamodbav:"submitted_at"`
-	UpdatedAt           time.Time `json:"updated_at" dynamodbav:"updated_at"`
-	IPAddress           string    `json:"ip_address,omitempty" dynamodbav:"ip_address,omitempty"`
-	UserAgent           string    `json:"user_agent,omitempty" dynamodbav:"user_agent,omitempty"`
+	RSVPID              string         `json:"rsvp_id" dynamodbav:"rsvp_id"`
+	GuestID             string         `json:"guest_id" dynamodbav:"guest_id"`
+	Attending           bool           `json:"attending" dynamodbav:"attending"`
+	PartySize           int            `json:"party_size" dynamodbav:"party_size"`
+	Attendees           []RSVPAttendee `json:"attendees" dynamodbav:"attendees"`
+	AttendeeNames       []string       `json:"attendee_names" dynamodbav:"attendee_names"`
+	DietaryRestrictions []string       `json:"dietary_restrictions" dynamodbav:"dietary_restrictions"`
+	SpecialRequests     string         `json:"special_requests,omitempty" dynamodbav:"special_requests,omitempty"`
+	SubmittedAt         time.Time      `json:"submitted_at" dynamodbav:"submitted_at"`
+	UpdatedAt           time.Time      `json:"updated_at" dynamodbav:"updated_at"`
+	IPAddress           string         `json:"ip_address,omitempty" dynamodbav:"ip_address,omitempty"`
+	UserAgent           string         `json:"user_agent,omitempty" dynamodbav:"user_agent,omitempty"`
 }

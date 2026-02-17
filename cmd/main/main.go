@@ -98,7 +98,7 @@ func setupPublicRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbC
 			http.Error(w, `{"error": "RSVP system not configured"}`, http.StatusServiceUnavailable)
 		})
 		server.HandleFunc("GET /rsvp/success", func(w http.ResponseWriter, r *http.Request) {
-			views.App(views.RSVPSuccess()).Render(r.Context(), w)
+			views.App(views.RSVPSuccess(nil)).Render(r.Context(), w)
 		})
 		server.HandleFunc("POST /api/rsvp/submit", func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error": "RSVP system not configured"}`, http.StatusServiceUnavailable)
@@ -126,7 +126,7 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 
 	// Initialize handlers
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
-	dashboardHandler := handlers.NewAdminDashboardHandler(statsService)
+	dashboardHandler := handlers.NewAdminDashboardHandler(statsService, guestRepo)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -139,6 +139,10 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 	// Dashboard routes
 	server.Handle("GET /dashboard", requireAuth(http.HandlerFunc(dashboardHandler.HandleDashboard)))
 	server.Handle("GET /guests", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuests)))
+	server.Handle("GET /guests/{id}", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuestDetail)))
+	server.Handle("GET /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleAddGuests)))
+	server.Handle("POST /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleCreateGuest)))
+	server.Handle("POST /guests/import", requireAuth(http.HandlerFunc(dashboardHandler.HandleImportCSV)))
 	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
 
 	logger.Info("admin routes enabled", "admins_table", dbConfig.AdminsTable)

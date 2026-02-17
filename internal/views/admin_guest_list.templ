@@ -3,6 +3,7 @@ package views
 import (
 	"fmt"
 	"github.com/apkiernan/thedrewzers/internal/models"
+	"strings"
 )
 
 templ AdminGuestList(userName string, guests []*models.GuestWithRSVP) {
@@ -12,9 +13,9 @@ templ AdminGuestList(userName string, guests []*models.GuestWithRSVP) {
 templ adminGuestListContent(guests []*models.GuestWithRSVP) {
 	<div>
 		<!-- Page Title -->
-		<div class="text-center mb-16">
+		<div class="text-center mb-8">
 			<h2 class="text-2xl font-light text-gray-800 uppercase tracking-widest">Guest List</h2>
-			<p class="mt-4 text-base text-gray-500">{ fmt.Sprintf("%d households invited", len(guests)) }</p>
+			<p class="mt-4 text-base text-gray-500">{ fmt.Sprintf("%d guests invited", totalInvitedGuests(guests)) }</p>
 		</div>
 		<!-- Search Bar -->
 		<div class="mb-12">
@@ -47,11 +48,17 @@ templ adminGuestListContent(guests []*models.GuestWithRSVP) {
 				</thead>
 				<tbody>
 					for _, gwRSVP := range guests {
-						<tr class="guest-row border-b border-gray-50 hover:bg-gray-50 transition-colors">
+						<tr
+							class="guest-row border-b border-gray-50 hover:bg-gray-50 transition-colors"
+							data-party-size={ fmt.Sprintf("%d", gwRSVP.Guest.MaxPartySize) }
+						>
 							<td class="px-8 py-6">
-								<div class="guest-name text-base text-gray-800 font-medium">
-									{ gwRSVP.Guest.PrimaryGuest }
-								</div>
+								<a
+									href={ "/guests/" + gwRSVP.Guest.GuestID }
+									class="guest-name text-base text-gray-800 font-medium hover:text-blue-600 transition-colors"
+								>
+									{ guestDisplayName(gwRSVP.Guest) }
+								</a>
 								if gwRSVP.Guest.Email != "" {
 									<div class="text-sm text-gray-400 mt-2">
 										{ gwRSVP.Guest.Email }
@@ -100,30 +107,55 @@ templ adminGuestListContent(guests []*models.GuestWithRSVP) {
 		<!-- Summary -->
 		<div class="mt-8 text-center">
 			<p class="text-base text-gray-400" id="guestCount">
-				Showing { fmt.Sprintf("%d", len(guests)) } of { fmt.Sprintf("%d", len(guests)) } guests
+				Showing { fmt.Sprintf("%d", totalInvitedGuests(guests)) } of { fmt.Sprintf("%d", totalInvitedGuests(guests)) } invited guests
 			</p>
 		</div>
 	</div>
 	<script>
-		function filterGuests() {
-			const input = document.getElementById('guestSearch');
-			const filter = input.value.toUpperCase();
-			const rows = document.querySelectorAll('.guest-row');
-			let visibleCount = 0;
-			const total = rows.length;
+			function filterGuests() {
+				const input = document.getElementById('guestSearch');
+				const filter = input.value.toUpperCase();
+				const rows = document.querySelectorAll('.guest-row');
+				let visibleHouseholds = 0;
+				let visibleGuests = 0;
+				let totalGuests = 0;
 
-			rows.forEach(row => {
-				const name = row.querySelector('.guest-name').textContent.toUpperCase();
-				if (name.includes(filter)) {
-					row.style.display = '';
-					visibleCount++;
-				} else {
-					row.style.display = 'none';
-				}
-			});
+				rows.forEach(row => {
+					const partySize = parseInt(row.dataset.partySize || '0', 10);
+					totalGuests += partySize;
+					const name = row.querySelector('.guest-name').textContent.toUpperCase();
+					if (name.includes(filter)) {
+						row.style.display = '';
+						visibleHouseholds++;
+						visibleGuests += partySize;
+					} else {
+						row.style.display = 'none';
+					}
+				});
 
-			document.getElementById('guestCount').textContent =
-				'Showing ' + visibleCount + ' of ' + total + ' guests';
+				document.getElementById('guestCount').textContent =
+					'Showing ' + visibleGuests + ' of ' + totalGuests + ' invited guests (' + visibleHouseholds + ' households)';
+			}
+			</script>
+}
+
+func guestDisplayName(guest *models.Guest) string {
+	if guest == nil || len(guest.HouseholdMembers) == 0 {
+		if guest == nil {
+			return ""
 		}
-	</script>
+		return guest.PrimaryGuest
+	}
+	return guest.PrimaryGuest + " & " + strings.Join(guest.HouseholdMembers, " & ")
+}
+
+func totalInvitedGuests(guests []*models.GuestWithRSVP) int {
+	total := 0
+	for _, gwRSVP := range guests {
+		if gwRSVP == nil || gwRSVP.Guest == nil {
+			continue
+		}
+		total += gwRSVP.Guest.MaxPartySize
+	}
+	return total
 }

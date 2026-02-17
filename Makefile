@@ -1,5 +1,5 @@
 # Development targets
-.PHONY: all tpl styles server watch-styles build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js scripts scripts-dev db-start db-stop db-setup db-seed db-logs
+.PHONY: all tpl styles server watch-styles build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js scripts scripts-dev db-start db-stop db-setup db-seed db-clear db-logs
 
 # Default development target
 all: dev-build
@@ -204,6 +204,10 @@ db-setup:
 db-seed:
 	@go run ./cmd/seed-local-db
 
+# Clear local guests and RSVP data (keeps table definitions)
+db-clear:
+	@go run ./cmd/clear-local-db
+
 # View DynamoDB Local logs
 db-logs:
 	@docker-compose logs -f dynamodb-local
@@ -219,4 +223,3 @@ db-init: db-start
 server-local: db-start
 	@sleep 2
 	@DYNAMODB_ENDPOINT=http://localhost:8000 air
-

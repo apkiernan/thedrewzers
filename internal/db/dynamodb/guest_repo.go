@@ -179,15 +179,15 @@ func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) (
 		return nil, fmt.Errorf("searching guests by name: %w", err)
 	}
 
-	nameLower := strings.ToLower(strings.TrimSpace(name))
-	if nameLower == "" {
+	query := normalizeSearchText(name)
+	if query == "" {
 		return nil, nil
 	}
 
 	var matches []*models.Guest
 	for _, guest := range allGuests {
 		// Check primary guest name
-		if strings.Contains(strings.ToLower(guest.PrimaryGuest), nameLower) {
+		if strings.Contains(normalizeSearchText(guest.PrimaryGuest), query) {
 			matches = append(matches, guest)
 			continue
 		}
@@ -195,7 +195,7 @@ func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) (
 		// Check household members
 		matched := false
 		for _, member := range guest.HouseholdMembers {
-			if strings.Contains(strings.ToLower(member), nameLower) {
+			if strings.Contains(normalizeSearchText(member), query) {
 				matched = true
 				break
 			}
@@ -206,4 +206,9 @@ func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) (
 	}
 
 	return matches, nil
+}
+
+func normalizeSearchText(value string) string {
+	// Normalize case and collapse repeated whitespace so user casing/spacing does not impact matching.
+	return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(value)), " "))
 }

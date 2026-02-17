@@ -4,15 +4,15 @@ import "time"
 
 // DashboardStats contains aggregated RSVP statistics for the admin dashboard
 type DashboardStats struct {
-	TotalInvited     int            `json:"total_invited"`
-	TotalResponses   int            `json:"total_responses"`
-	TotalAttending   int            `json:"total_attending"`
-	TotalDeclined    int            `json:"total_declined"`
-	TotalPending     int            `json:"total_pending"`
-	ResponseRate     float64        `json:"response_rate"`
-	AttendingGuests  int            `json:"attending_guests"`
-	DietaryBreakdown map[string]int `json:"dietary_breakdown"`
-	RecentRSVPs      []RecentRSVP   `json:"recent_rsvps"`
+	TotalInvited    int            `json:"total_invited"`
+	TotalResponses  int            `json:"total_responses"`
+	TotalAttending  int            `json:"total_attending"`
+	TotalDeclined   int            `json:"total_declined"`
+	TotalPending    int            `json:"total_pending"`
+	ResponseRate    float64        `json:"response_rate"`
+	AttendingGuests int            `json:"attending_guests"`
+	MealBreakdown   map[string]int `json:"meal_breakdown"`
+	RecentRSVPs     []RecentRSVP   `json:"recent_rsvps"`
 }
 
 // RecentRSVP represents a recent RSVP for display on the dashboard

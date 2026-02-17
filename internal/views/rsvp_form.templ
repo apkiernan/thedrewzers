@@ -2,6 +2,7 @@ package views
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/apkiernan/thedrewzers/internal/models"
 )
@@ -14,7 +15,14 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 				<p class="text-xl text-gray-600">Hello, { guest.PrimaryGuest }!</p>
 				<p class="text-gray-500 mt-2">We would be honored to have you celebrate with us</p>
 			</div>
-
+			if len(guest.HouseholdMembers) > 0 {
+				<div class="mb-10 p-4 border border-blue-100 bg-blue-50 rounded-lg">
+					<p class="text-sm text-blue-700 font-medium mb-1">Your invitation includes:</p>
+					<p class="text-blue-900">
+						{ guest.PrimaryGuest }{ ", " + strings.Join(guest.HouseholdMembers, ", ") }
+					</p>
+				</div>
+			}
 			<form id="rsvp-form" class="space-y-8" data-guest-id={ guest.GuestID }>
 				// Attending choice
 				<div class="text-center">
@@ -34,7 +42,6 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 								<span class="text-lg">Joyfully Accept</span>
 							</div>
 						</label>
-
 						<label class="cursor-pointer">
 							<input
 								type="radio"
@@ -51,7 +58,6 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 						</label>
 					</div>
 				</div>
-
 				// Attending details - hidden by default, shown via JS
 				<div id="attending-details" class="space-y-6 hidden">
 					// Party size
@@ -77,51 +83,40 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 							}
 						</select>
 					</div>
-
-					// Attendee names container
+					// Attendee details (name + meal)
 					<div>
 						<label class="block text-gray-700 mb-2">
-							Names of guests attending
-							<span class="text-sm text-gray-500 ml-1">(Including yourself)</span>
+							Attendees and meal selections
+							<span class="text-sm text-gray-500 ml-1">(Required for each attending guest)</span>
 						</label>
-						<div id="attendee-names" class="space-y-3">
-							if existingRSVP != nil && len(existingRSVP.AttendeeNames) > 0 {
-								for i, name := range existingRSVP.AttendeeNames {
+						<div id="attendee-rows" class="space-y-4">
+							for i, attendee := range initialAttendees(guest, existingRSVP) {
+								<div class="attendee-row grid grid-cols-1 md:grid-cols-2 gap-3" data-index={ strconv.Itoa(i) }>
 									<input
 										type="text"
-										name="attendee_names[]"
-										value={ name }
+										class="attendee-name w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent"
 										placeholder={ "Guest " + strconv.Itoa(i+1) + " name" }
-										class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+										value={ attendee.Name }
 									/>
-								}
-							} else {
-								<input
-									type="text"
-									name="attendee_names[]"
-									placeholder="Guest 1 name"
-									value={ guest.PrimaryGuest }
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent"
-								/>
+									<select
+										class="attendee-meal w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white"
+									>
+										<option value="">Select a meal</option>
+										for _, meal := range mealOptions() {
+											<option
+												value={ meal }
+												if equalsIgnoreCase(attendee.Meal, meal) {
+													selected
+												}
+											>
+												{ mealLabel(meal) }
+											</option>
+										}
+									</select>
+								</div>
 							}
 						</div>
 					</div>
-
-					// Dietary restrictions
-					<div>
-						<label class="block text-gray-700 mb-2">
-							Dietary restrictions or allergies
-							<span class="text-sm text-gray-500 ml-1">(Optional)</span>
-						</label>
-						<textarea
-							name="dietary_restrictions"
-							id="dietary-restrictions"
-							rows="3"
-							class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent resize-none"
-							placeholder="Please let us know about any dietary needs..."
-						>{ getDietaryText(existingRSVP) }</textarea>
-					</div>
-
 					// Special requests
 					<div>
 						<label class="block text-gray-700 mb-2">
@@ -137,7 +132,6 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 						>{ getSpecialRequestsText(existingRSVP) }</textarea>
 					</div>
 				</div>
-
 				// Submit button
 				<div class="text-center pt-6">
 					<button
@@ -148,7 +142,6 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 						Submit RSVP
 					</button>
 				</div>
-
 				if existingRSVP != nil {
 					<p class="text-center text-sm text-gray-500">
 						You previously submitted an RSVP. Submitting again will update your response.
@@ -157,7 +150,6 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 			</form>
 		</div>
 	</div>
-
 	<script src="/static/js/rsvp.js"></script>
 }
 
@@ -168,7 +160,6 @@ templ RSVPNameSearch() {
 				<h1 class="script text-5xl md:text-6xl text-blue-300 mb-6 font-extralight">RSVP</h1>
 				<p class="text-gray-600">Enter your first and last name to find your invitation</p>
 			</div>
-
 			<form id="name-search-form" class="space-y-6">
 				<div>
 					<label class="block text-gray-700 mb-2 text-center">Your Name</label>
@@ -182,7 +173,6 @@ templ RSVPNameSearch() {
 						required
 					/>
 				</div>
-
 				<button
 					type="submit"
 					id="search-button"
@@ -191,15 +181,12 @@ templ RSVPNameSearch() {
 					Find My Invitation
 				</button>
 			</form>
-
 			<div id="search-results" class="mt-8 hidden"></div>
-
 			<p class="text-center text-sm text-gray-500 mt-8">
 				Please enter your name as it appears on your invitation.
 			</p>
 		</div>
 	</div>
-
 	<script>
 		document.getElementById('name-search-form').addEventListener('submit', async function(e) {
 			e.preventDefault();
@@ -213,6 +200,57 @@ templ RSVPNameSearch() {
 			resultsDiv.classList.add('hidden');
 			resultsDiv.innerHTML = '';
 
+			const renderNoResults = function() {
+				resultsDiv.innerHTML = `
+					<div class="text-center">
+						<svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						<p class="text-gray-600 mb-2">We couldn't find your name on the guest list.</p>
+						<p class="text-gray-500 text-sm">Please check the spelling or contact us for help.</p>
+					</div>`;
+				resultsDiv.classList.remove('hidden');
+			};
+
+			const renderResults = function(guests) {
+				resultsDiv.innerHTML = '';
+				const intro = document.createElement('div');
+				intro.className = 'text-center mb-4';
+				const introText = document.createElement('p');
+				introText.className = 'text-gray-600';
+				introText.textContent = guests.length === 1
+					? 'We found your invitation. Continue below:'
+					: 'We found a few matches. Please choose your invitation:';
+				intro.appendChild(introText);
+				resultsDiv.appendChild(intro);
+
+				const list = document.createElement('div');
+				list.className = 'space-y-3';
+
+				guests.forEach(function(guest) {
+					const link = document.createElement('a');
+					link.href = '/rsvp/form?id=' + encodeURIComponent(guest.guest_id);
+					link.className = 'block p-4 border border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer';
+
+					const title = document.createElement('span');
+					title.className = 'text-gray-800 font-medium block';
+					title.textContent = guest.primary_guest;
+					link.appendChild(title);
+
+					if (guest.household_members && guest.household_members.length > 0) {
+						const members = document.createElement('span');
+						members.className = 'text-sm text-gray-500 block mt-1';
+						members.textContent = 'Guests: ' + guest.household_members.join(', ');
+						link.appendChild(members);
+					}
+
+					list.appendChild(link);
+				});
+
+				resultsDiv.appendChild(list);
+				resultsDiv.classList.remove('hidden');
+			};
+
 			try {
 				const response = await fetch('/api/rsvp/search', {
 					method: 'POST',
@@ -221,47 +259,15 @@ templ RSVPNameSearch() {
 				});
 
 				const data = await response.json();
-
 				if (!response.ok) {
 					throw new Error(data.error || 'Search failed');
 				}
 
-				if (data.count === 0) {
-					// No matches found
-					resultsDiv.innerHTML = `
-						<div class="text-center">
-							<svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-							</svg>
-							<p class="text-gray-600 mb-2">We couldn't find your name on the guest list.</p>
-							<p class="text-gray-500 text-sm">Please check the spelling or contact us for help.</p>
-						</div>`;
-					resultsDiv.classList.remove('hidden');
-				} else if (data.count === 1) {
-					// Exactly one match — go straight to RSVP form
-					window.location.href = '/rsvp/form?id=' + encodeURIComponent(data.guests[0].guest_id);
-				} else {
-					// Multiple matches — show disambiguation
-					let html = `
-						<div class="text-center mb-4">
-							<p class="text-gray-600">We found a few matches &mdash; please select yourself:</p>
-						</div>
-						<div class="space-y-3">`;
-					data.guests.forEach(function(guest) {
-						const members = guest.household_members && guest.household_members.length > 0
-							? '<span class="text-sm text-gray-500 block mt-1">Household: ' + guest.household_members.join(', ') + '</span>'
-							: '';
-						html += `
-							<a href="/rsvp/form?id=${encodeURIComponent(guest.guest_id)}"
-							   class="block p-4 border border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer">
-								<span class="text-gray-800 font-medium">${guest.primary_guest}</span>
-								${members}
-							</a>`;
-					});
-					html += '</div>';
-					resultsDiv.innerHTML = html;
-					resultsDiv.classList.remove('hidden');
+				if (!data.guests || data.guests.length === 0) {
+					renderNoResults();
+					return;
 				}
+				renderResults(data.guests);
 			} catch (error) {
 				console.error('Search error:', error);
 				resultsDiv.innerHTML = `
@@ -298,7 +304,7 @@ templ RSVPNotFound() {
 	</div>
 }
 
-templ RSVPSuccess() {
+templ RSVPSuccess(attending *bool) {
 	<div class="min-h-screen bg-white py-12">
 		<div class="max-w-md mx-auto px-6 text-center">
 			<div class="mb-8">
@@ -307,8 +313,13 @@ templ RSVPSuccess() {
 				</svg>
 			</div>
 			<h1 class="script text-5xl md:text-6xl text-blue-300 mb-6 font-extralight">Thank You!</h1>
-			<p class="text-gray-600 mb-4">Your RSVP has been received.</p>
-			<p class="text-gray-500 mb-8">We can't wait to celebrate with you!</p>
+			if attending != nil && !*attending {
+				<p class="text-gray-600 mb-4">Your RSVP has been received.</p>
+				<p class="text-gray-500 mb-8">We are sorry you can't make it. We hope to celebrate with you soon!</p>
+			} else {
+				<p class="text-gray-600 mb-4">Your RSVP and meal selections have been received.</p>
+				<p class="text-gray-500 mb-8">We can't wait to celebrate with you!</p>
+			}
 			<a
 				href="/"
 				class="inline-block px-8 py-4 bg-blue-300 text-white rounded-lg hover:bg-blue-400 transition-colors"
@@ -320,20 +331,6 @@ templ RSVPSuccess() {
 }
 
 // Helper functions for template rendering
-func getDietaryText(rsvp *models.RSVP) string {
-	if rsvp == nil || len(rsvp.DietaryRestrictions) == 0 {
-		return ""
-	}
-	result := ""
-	for i, restriction := range rsvp.DietaryRestrictions {
-		if i > 0 {
-			result += "\n"
-		}
-		result += restriction
-	}
-	return result
-}
-
 func getSpecialRequestsText(rsvp *models.RSVP) string {
 	if rsvp == nil {
 		return ""
@@ -346,4 +343,35 @@ func guestLabel(count int) string {
 		return "Guest"
 	}
 	return "Guests"
+}
+
+func mealOptions() []string {
+	return []string{"Roasted Boneless Chicken Breast", "Grilled Brandt Farms 10z NY Strip", "Roasted Cauliflower Al Pastor (GF-V)"}
+}
+
+func mealLabel(meal string) string {
+	if meal == "" {
+		return ""
+	}
+	return strings.ToUpper(meal[:1]) + meal[1:]
+}
+
+func equalsIgnoreCase(left string, right string) bool {
+	return strings.EqualFold(strings.TrimSpace(left), strings.TrimSpace(right))
+}
+
+func initialAttendees(guest *models.Guest, existingRSVP *models.RSVP) []models.RSVPAttendee {
+	if existingRSVP != nil && len(existingRSVP.Attendees) > 0 {
+		return existingRSVP.Attendees
+	}
+
+	if existingRSVP != nil && len(existingRSVP.AttendeeNames) > 0 {
+		attendees := make([]models.RSVPAttendee, 0, len(existingRSVP.AttendeeNames))
+		for _, name := range existingRSVP.AttendeeNames {
+			attendees = append(attendees, models.RSVPAttendee{Name: name})
+		}
+		return attendees
+	}
+
+	return []models.RSVPAttendee{{Name: guest.PrimaryGuest, Meal: ""}}
 }
