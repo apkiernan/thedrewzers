@@ -17,9 +17,9 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 			</div>
 			if len(guest.HouseholdMembers) > 0 {
 				<div class="mb-10 p-4 border border-blue-100 bg-blue-50 rounded-lg">
-					<p class="text-sm text-blue-700 font-medium mb-1">Your invitation includes:</p>
+					<p class="text-sm text-blue-700 font-medium mb-1">Named invited guests:</p>
 					<p class="text-blue-900">
-						{ guest.PrimaryGuest }{ ", " + strings.Join(guest.HouseholdMembers, ", ") }
+						{ strings.Join(guest.HouseholdMembers, ", ") }
 					</p>
 				</div>
 			}
@@ -74,7 +74,7 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 							for i := 1; i <= guest.MaxPartySize; i++ {
 								<option
 									value={ strconv.Itoa(i) }
-									if existingRSVP != nil && existingRSVP.PartySize == i {
+									if (existingRSVP != nil && existingRSVP.PartySize == i) || (existingRSVP == nil && i == defaultPartySize(guest)) {
 										selected
 									}
 								>
@@ -373,5 +373,51 @@ func initialAttendees(guest *models.Guest, existingRSVP *models.RSVP) []models.R
 		return attendees
 	}
 
-	return []models.RSVPAttendee{{Name: guest.PrimaryGuest, Meal: ""}}
+	names := namedInvitees(guest)
+	if guest != nil && guest.MaxPartySize > 0 && len(names) > guest.MaxPartySize {
+		names = names[:guest.MaxPartySize]
+	}
+	attendees := make([]models.RSVPAttendee, 0, len(names))
+	for _, name := range names {
+		attendees = append(attendees, models.RSVPAttendee{Name: name, Meal: ""})
+	}
+	return attendees
+}
+
+func defaultPartySize(guest *models.Guest) int {
+	if guest == nil || guest.MaxPartySize < 1 {
+		return 1
+	}
+
+	size := len(namedInvitees(guest))
+	if size < 1 {
+		return 1
+	}
+	if size > guest.MaxPartySize {
+		return guest.MaxPartySize
+	}
+	return size
+}
+
+func namedInvitees(guest *models.Guest) []string {
+	if guest == nil {
+		return []string{""}
+	}
+
+	names := make([]string, 0, len(guest.HouseholdMembers))
+	for _, member := range guest.HouseholdMembers {
+		member = strings.TrimSpace(member)
+		if member != "" {
+			names = append(names, member)
+		}
+	}
+	if len(names) > 0 {
+		return names
+	}
+
+	primary := strings.TrimSpace(guest.PrimaryGuest)
+	if primary == "" {
+		return []string{""}
+	}
+	return []string{primary}
 }

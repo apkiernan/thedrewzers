@@ -43,10 +43,26 @@ func (s *StatsService) GetDashboardStats(ctx context.Context) (*models.Dashboard
 	}
 
 	stats := &models.DashboardStats{
-		TotalInvited:   len(guests),
-		TotalResponses: len(rsvps),
-		MealBreakdown:  make(map[string]int),
-		RecentRSVPs:    make([]models.RecentRSVP, 0),
+		TotalInvited:    len(guests),
+		TotalHouseholds: len(guests),
+		TotalResponses:  len(rsvps),
+		MealBreakdown:   make(map[string]int),
+		RecentRSVPs:     make([]models.RecentRSVP, 0),
+	}
+
+	for _, guest := range guests {
+		if guest == nil {
+			continue
+		}
+
+		if guest.MaxPartySize > 0 {
+			stats.TotalInvitedGuests += guest.MaxPartySize
+			continue
+		}
+
+		// Fallback for legacy/malformed rows where max party size may be missing.
+		fallbackCount := len(guest.HouseholdMembers) + 1
+		stats.TotalInvitedGuests += fallbackCount
 	}
 
 	// Calculate attending/declined and meal selections
@@ -66,10 +82,10 @@ func (s *StatsService) GetDashboardStats(ctx context.Context) (*models.Dashboard
 		}
 	}
 
-	stats.TotalPending = stats.TotalInvited - stats.TotalResponses
+	stats.TotalPending = stats.TotalHouseholds - stats.TotalResponses
 
-	if stats.TotalInvited > 0 {
-		stats.ResponseRate = float64(stats.TotalResponses) / float64(stats.TotalInvited) * 100
+	if stats.TotalHouseholds > 0 {
+		stats.ResponseRate = float64(stats.TotalResponses) / float64(stats.TotalHouseholds) * 100
 	}
 
 	// Get recent RSVPs (last 10, sorted by submission time)

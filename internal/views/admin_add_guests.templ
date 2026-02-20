@@ -34,23 +34,23 @@ templ adminAddGuestsContent(success bool, imported string, errorMsg string) {
 				<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-8">Add Single Guest</h3>
 				<form action="/guests/add" method="POST" class="space-y-6">
 					<div>
-						<label for="primary_guest" class="block text-sm font-medium text-gray-700 mb-2">Primary Guest Name *</label>
+						<label for="primary_guest" class="block text-sm font-medium text-gray-700 mb-2">Household Label *</label>
 						<input
 							type="text"
 							id="primary_guest"
 							name="primary_guest"
 							required
-							placeholder="John & Jane Smith"
+							placeholder="Jess & Evan Sahagian"
 							class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-transparent"
 						/>
 					</div>
 					<div>
-						<label for="household_members" class="block text-sm font-medium text-gray-700 mb-2">Household Members</label>
+						<label for="household_members" class="block text-sm font-medium text-gray-700 mb-2">Named Invitees</label>
 						<textarea
 							id="household_members"
 							name="household_members"
 							rows="2"
-							placeholder="John Smith;Jane Smith"
+							placeholder="Jess Sahagian;Evan Sahagian"
 							class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-transparent"
 						></textarea>
 						<p class="mt-1 text-xs text-gray-400">Separate names with semicolons</p>
@@ -151,10 +151,16 @@ templ adminAddGuestsContent(success bool, imported string, errorMsg string) {
 						<p class="text-sm font-medium text-gray-700 mb-3">Expected CSV format:</p>
 						<code class="block text-xs text-gray-500 bg-white rounded p-3 border border-gray-200 overflow-x-auto whitespace-pre">
 							primary_guest,household_members,max_party_size
-							John & Jane Smith,John Smith;Jane Smith,2
+							Jess & Evan Sahagian,Jess Sahagian;Evan Sahagian,2
 						</code>
 						<p class="mt-2 text-xs text-gray-500">
 							Required: <code>primary_guest</code>. Optional: <code>household_members</code>, <code>max_party_size</code>, <code>email</code>, <code>street</code>, <code>city</code>, <code>state</code>, <code>zip</code>.
+						</p>
+						<p class="mt-1 text-xs text-gray-500">
+							Use <code>primary_guest</code> as the household label shown in the app. Put actual person names in <code>household_members</code>.
+						</p>
+						<p class="mt-1 text-xs text-gray-500">
+							Example +1: <code>Jess Sahagian + Guest,Jess Sahagian,2</code>.
 						</p>
 						<p class="mt-1 text-xs text-gray-500">
 							For <code>max_party_size</code>, values are normalized to <code>1</code> (no +1) or <code>2</code> (with +1).

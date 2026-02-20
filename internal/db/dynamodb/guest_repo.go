@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -171,7 +172,7 @@ func (r *GuestRepository) ListGuests(ctx context.Context) ([]*models.Guest, erro
 	return guests, nil
 }
 
-// SearchGuestsByName finds guests matching the given name (case-insensitive, partial match)
+// SearchGuestsByName finds guests matching the given name (case-insensitive, token-aware partial match).
 func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) ([]*models.Guest, error) {
 	// Scan all guests (small dataset, scan is fine)
 	allGuests, err := r.ListGuests(ctx)
@@ -186,21 +187,7 @@ func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) (
 
 	var matches []*models.Guest
 	for _, guest := range allGuests {
-		// Check primary guest name
-		if strings.Contains(normalizeSearchText(guest.PrimaryGuest), query) {
-			matches = append(matches, guest)
-			continue
-		}
-
-		// Check household members
-		matched := false
-		for _, member := range guest.HouseholdMembers {
-			if strings.Contains(normalizeSearchText(member), query) {
-				matched = true
-				break
-			}
-		}
-		if matched {
+		if guestMatchesQuery(guest, query) {
 			matches = append(matches, guest)
 		}
 	}
@@ -211,4 +198,64 @@ func (r *GuestRepository) SearchGuestsByName(ctx context.Context, name string) (
 func normalizeSearchText(value string) string {
 	// Normalize case and collapse repeated whitespace so user casing/spacing does not impact matching.
 	return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(value)), " "))
+}
+
+func searchTextMatches(candidate string, normalizedQuery string) bool {
+	normalizedCandidate := normalizeSearchText(candidate)
+	if normalizedCandidate == "" || normalizedQuery == "" {
+		return false
+	}
+
+	// Fast path for contiguous partial matches.
+	if strings.Contains(normalizedCandidate, normalizedQuery) {
+		return true
+	}
+
+	candidateTokens := searchTokens(normalizedCandidate)
+	queryTokens := searchTokens(normalizedQuery)
+	if len(candidateTokens) == 0 || len(queryTokens) == 0 {
+		return false
+	}
+
+	// Token-aware fallback for household labels like "Jess & Evan Sahagian".
+	for _, queryToken := range queryTokens {
+		tokenMatched := false
+		for _, candidateToken := range candidateTokens {
+			if strings.Contains(candidateToken, queryToken) {
+				tokenMatched = true
+				break
+			}
+		}
+		if !tokenMatched {
+			return false
+		}
+	}
+
+	return true
+}
+
+func searchTokens(value string) []string {
+	return strings.FieldsFunc(value, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	})
+}
+
+func guestMatchesQuery(guest *models.Guest, normalizedQuery string) bool {
+	if guest == nil {
+		return false
+	}
+
+	// Check primary guest name first.
+	if searchTextMatches(guest.PrimaryGuest, normalizedQuery) {
+		return true
+	}
+
+	// Then check household members.
+	for _, member := range guest.HouseholdMembers {
+		if searchTextMatches(member, normalizedQuery) {
+			return true
+		}
+	}
+
+	return false
 }

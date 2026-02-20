@@ -17,7 +17,7 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 		</div>
 		<!-- Statistics Cards -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-			@statCard("Invited", fmt.Sprintf("%d", stats.TotalInvited), "Total households")
+			@statCard("Invited", fmt.Sprintf("%d", stats.TotalInvitedGuests), fmt.Sprintf("%d households", stats.TotalHouseholds))
 			@statCard("Responded", fmt.Sprintf("%d", stats.TotalResponses), fmt.Sprintf("%.0f%% response rate", stats.ResponseRate))
 			@statCard("Attending", fmt.Sprintf("%d", stats.AttendingGuests), "Total guests")
 			@statCard("Declined", fmt.Sprintf("%d", stats.TotalDeclined), "Households")
@@ -32,10 +32,10 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 						<span class="text-base text-gray-600">Attending</span>
 						<div class="flex items-center">
 							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
-								if stats.TotalInvited > 0 {
+								if stats.TotalHouseholds > 0 {
 									<div
 										class="h-full bg-green-400 rounded-full"
-										style={ fmt.Sprintf("width: %d%%", stats.TotalAttending*100/stats.TotalInvited) }
+										style={ fmt.Sprintf("width: %d%%", stats.TotalAttending*100/stats.TotalHouseholds) }
 									></div>
 								}
 							</div>
@@ -46,10 +46,10 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 						<span class="text-base text-gray-600">Declined</span>
 						<div class="flex items-center">
 							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
-								if stats.TotalInvited > 0 {
+								if stats.TotalHouseholds > 0 {
 									<div
 										class="h-full bg-red-300 rounded-full"
-										style={ fmt.Sprintf("width: %d%%", stats.TotalDeclined*100/stats.TotalInvited) }
+										style={ fmt.Sprintf("width: %d%%", stats.TotalDeclined*100/stats.TotalHouseholds) }
 									></div>
 								}
 							</div>
@@ -60,10 +60,10 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 						<span class="text-base text-gray-600">Pending</span>
 						<div class="flex items-center">
 							<div class="w-32 h-2 bg-gray-100 rounded-full mr-4 overflow-hidden">
-								if stats.TotalInvited > 0 {
+								if stats.TotalHouseholds > 0 {
 									<div
 										class="h-full bg-yellow-300 rounded-full"
-										style={ fmt.Sprintf("width: %d%%", stats.TotalPending*100/stats.TotalInvited) }
+										style={ fmt.Sprintf("width: %d%%", stats.TotalPending*100/stats.TotalHouseholds) }
 									></div>
 								}
 							</div>
