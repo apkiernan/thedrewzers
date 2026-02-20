@@ -1,5 +1,0 @@
-- gallery own page
-- registry own page
-- rsvp own page
-- wedding party own page
-- travel (details, hotel, where to park) own page
