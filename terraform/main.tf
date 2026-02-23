@@ -198,12 +198,13 @@ resource "aws_lambda_function" "app" {
       S3_REGION      = var.aws_region
 
       # RSVP system variables
-      STATIC_BUCKET = aws_s3_bucket.static_assets.id
-      STATIC_URL    = "https://${aws_cloudfront_distribution.app_distribution.domain_name}"
-      GUESTS_TABLE  = aws_dynamodb_table.wedding_guests.name
-      RSVPS_TABLE   = aws_dynamodb_table.wedding_rsvps.name
-      ADMINS_TABLE  = aws_dynamodb_table.wedding_admins.name
-      JWT_SECRET    = var.jwt_secret
+      STATIC_BUCKET         = aws_s3_bucket.static_assets.id
+      STATIC_URL            = "https://${aws_cloudfront_distribution.app_distribution.domain_name}"
+      GUESTS_TABLE          = aws_dynamodb_table.wedding_guests.name
+      RSVPS_TABLE           = aws_dynamodb_table.wedding_rsvps.name
+      ADMINS_TABLE          = aws_dynamodb_table.wedding_admins.name
+      JWT_SECRET            = var.jwt_secret
+      ADMIN_EMAIL_WHITELIST = join(",", var.admin_email_whitelist)
     }
   }
 }

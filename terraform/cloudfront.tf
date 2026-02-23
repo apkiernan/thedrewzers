@@ -19,7 +19,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   origin {
     domain_name = aws_s3_bucket_website_configuration.static_assets.website_endpoint
     origin_id   = "s3-website"
-    
+
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -32,7 +32,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   origin {
     domain_name = replace(aws_apigatewayv2_api.lambda.api_endpoint, "https://", "")
     origin_id   = "api-gateway"
-    
+
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -105,7 +105,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
 
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
-    default_ttl            = 604800  # 1 week
+    default_ttl            = 604800   # 1 week
     max_ttl                = 31536000 # 1 year
     compress               = true
   }
@@ -126,10 +126,12 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   aliases = [
     "thekiernan.wedding",
     "www.thekiernan.wedding",
+    "admin.thekiernan.wedding",
     "thekiernanwedding.com",
-    "www.thekiernanwedding.com"
+    "www.thekiernanwedding.com",
+    "admin.thekiernanwedding.com"
   ]
-  
+
   depends_on = [aws_acm_certificate_validation.wedding_cert]
 }
 

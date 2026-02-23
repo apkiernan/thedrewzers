@@ -43,7 +43,9 @@ output "custom_domains" {
   value = [
     "https://thekiernan.wedding",
     "https://www.thekiernan.wedding",
+    "https://admin.thekiernan.wedding",
     "https://thekiernanwedding.com",
-    "https://www.thekiernanwedding.com"
+    "https://www.thekiernanwedding.com",
+    "https://admin.thekiernanwedding.com"
   ]
 }
