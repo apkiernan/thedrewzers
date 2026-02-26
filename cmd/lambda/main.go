@@ -17,6 +17,7 @@ import (
 	dbdynamo "github.com/apkiernan/thedrewzers/internal/db/dynamodb"
 	"github.com/apkiernan/thedrewzers/internal/handlers"
 	"github.com/apkiernan/thedrewzers/internal/logger"
+	"github.com/apkiernan/thedrewzers/internal/services"
 )
 
 var publicAdapter *httpadapter.HandlerAdapter
@@ -65,25 +66,26 @@ func init() {
 
 	// Create admin server mux
 	adminServer := http.NewServeMux()
-	setupAdminRoutes(adminServer, adminRepo)
+	statsService := services.NewStatsService(guestRepo, rsvpRepo)
+	setupAdminRoutes(adminServer, adminRepo, guestRepo, statsService)
 	adminAdapter = httpadapter.New(adminServer)
 }
 
 // setupAdminRoutes configures routes for the admin dashboard
-func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository) {
+func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository, guestRepo *dbdynamo.GuestRepository, statsService *services.StatsService) {
 	// Initialize JWT service
 	jwtService, err := auth.NewJWTService()
 	if err != nil {
 		logger.Warn("JWT service not initialized", "error", err)
-		// Return a handler that always returns an error
 		server.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Admin authentication not configured", http.StatusServiceUnavailable)
 		})
 		return
 	}
 
-	// Initialize auth handler
+	// Initialize handlers
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
+	dashboardHandler := handlers.NewAdminDashboardHandler(statsService, guestRepo)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -94,8 +96,13 @@ func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository
 	// Protected admin routes (auth required)
 	requireAuth := auth.RequireAuth(jwtService)
 
-	// Dashboard placeholder
-	server.Handle("GET /dashboard", requireAuth(http.HandlerFunc(authHandler.HandleDashboardPlaceholder)))
+	server.Handle("GET /dashboard", requireAuth(http.HandlerFunc(dashboardHandler.HandleDashboard)))
+	server.Handle("GET /guests", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuests)))
+	server.Handle("GET /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleAddGuests)))
+	server.Handle("GET /guests/{id}", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuestDetail)))
+	server.Handle("POST /guests/create", requireAuth(http.HandlerFunc(dashboardHandler.HandleCreateGuest)))
+	server.Handle("POST /guests/import", requireAuth(http.HandlerFunc(dashboardHandler.HandleImportCSV)))
+	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
 	server.Handle("GET /", requireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusFound)
 	})))
@@ -118,8 +125,13 @@ func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		host = req.Headers["host"]
 	}
 
-	// Route to admin handler if accessing admin subdomain
-	if strings.HasPrefix(host, "admin.") {
+	// Route to admin handler if accessing admin subdomain.
+	// Check custom header set by admin CloudFront distribution,
+	// since CloudFront replaces the Host header with the origin domain.
+	isAdmin := strings.HasPrefix(host, "admin.") ||
+		req.Headers["x-admin-request"] == "true" ||
+		req.Headers["X-Admin-Request"] == "true"
+	if isAdmin {
 		return adminAdapter.ProxyWithContext(ctx, req)
 	}
 

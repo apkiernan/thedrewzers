@@ -253,6 +253,13 @@ resource "aws_apigatewayv2_route" "lambda_api" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
+# Catch-all route for admin subdomain requests (login, dashboard, etc.)
+resource "aws_apigatewayv2_route" "lambda_default" {
+  api_id    = aws_apigatewayv2_api.lambda.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
 # Lambda permission for API Gateway
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"

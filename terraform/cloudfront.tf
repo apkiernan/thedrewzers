@@ -126,10 +126,8 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   aliases = [
     "thekiernan.wedding",
     "www.thekiernan.wedding",
-    "admin.thekiernan.wedding",
     "thekiernanwedding.com",
-    "www.thekiernanwedding.com",
-    "admin.thekiernanwedding.com"
+    "www.thekiernanwedding.com"
   ]
 
   depends_on = [aws_acm_certificate_validation.wedding_cert]

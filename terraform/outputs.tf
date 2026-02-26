@@ -43,9 +43,17 @@ output "custom_domains" {
   value = [
     "https://thekiernan.wedding",
     "https://www.thekiernan.wedding",
-    "https://admin.thekiernan.wedding",
     "https://thekiernanwedding.com",
-    "https://www.thekiernanwedding.com",
-    "https://admin.thekiernanwedding.com"
+    "https://www.thekiernanwedding.com"
   ]
+}
+
+output "admin_distribution_id" {
+  description = "CloudFront distribution ID for admin"
+  value       = aws_cloudfront_distribution.admin_distribution.id
+}
+
+output "admin_distribution_domain" {
+  description = "CloudFront distribution domain for admin"
+  value       = aws_cloudfront_distribution.admin_distribution.domain_name
 }
