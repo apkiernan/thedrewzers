@@ -231,7 +231,9 @@ func validateAttendees(req models.RSVPRequest, maxPartySize int) ([]models.RSVPA
 		if meal == "" {
 			return nil, 0, "Each attending guest must select a meal"
 		}
-		if !slices.Contains(allowedMealOptions, meal) {
+		if !slices.ContainsFunc(allowedMealOptions, func(m string) bool {
+			return strings.EqualFold(m, meal)
+		}) {
 			return nil, 0, "One or more meal selections are invalid"
 		}
 		attendees = append(attendees, models.RSVPAttendee{

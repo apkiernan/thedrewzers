@@ -16,14 +16,14 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 				<p class="text-gray-500 mt-2">We would be honored to have you celebrate with us</p>
 			</div>
 			if len(guest.HouseholdMembers) > 0 {
-				<div class="mb-10 p-4 border border-blue-100 bg-blue-50 rounded-lg">
+				<div class="mb-10 p-8 border border-blue-100 bg-blue-50 rounded-lg">
 					<p class="text-sm text-blue-700 font-medium mb-1">Named invited guests:</p>
 					<p class="text-blue-900">
 						{ strings.Join(guest.HouseholdMembers, ", ") }
 					</p>
 				</div>
 			}
-			<form id="rsvp-form" class="space-y-8" data-guest-id={ guest.GuestID }>
+			<form id="rsvp-form" class="space-y-8" data-guest-id={ guest.GuestID } novalidate>
 				// Attending choice
 				<div class="text-center">
 					<p class="text-gray-700 mb-6">Will you be joining us?</p>

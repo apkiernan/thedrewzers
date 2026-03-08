@@ -15,18 +15,11 @@
     details.classList.toggle("hidden", !show);
   }
 
-  function mealLabel(meal) {
-    if (!meal) return "";
-    return meal.charAt(0).toUpperCase() + meal.slice(1);
-  }
-
   function currentAttendees() {
     const rows = document.querySelectorAll("#attendee-rows .attendee-row");
     return Array.from(rows).map((row) => ({
       name: (row.querySelector(".attendee-name")?.value || "").trim(),
-      meal: (row.querySelector(".attendee-meal")?.value || "")
-        .trim()
-        .toLowerCase(),
+      meal: (row.querySelector(".attendee-meal")?.value || "").trim(),
     }));
   }
 
@@ -54,8 +47,11 @@
     mealOptions.forEach((meal) => {
       const option = document.createElement("option");
       option.value = meal;
-      option.textContent = mealLabel(meal);
-      if ((attendee.meal || "").toLowerCase() === meal) {
+      option.textContent = meal;
+      if (
+        attendee.meal &&
+        attendee.meal.toLowerCase() === meal.toLowerCase()
+      ) {
         option.selected = true;
       }
       mealSelect.appendChild(option);
@@ -117,7 +113,11 @@
       if (!attendee.meal) {
         return `Please select a meal for ${attendee.name || `guest ${i + 1}`}.`;
       }
-      if (!mealOptions.some((m) => m.toLowerCase() === attendee.meal)) {
+      if (
+        !mealOptions.some(
+          (m) => m.toLowerCase() === attendee.meal.toLowerCase(),
+        )
+      ) {
         return `Please choose a valid meal option for ${attendee.name}.`;
       }
     }

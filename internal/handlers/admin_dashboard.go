@@ -21,13 +21,15 @@ import (
 type AdminDashboardHandler struct {
 	statsService *services.StatsService
 	guestRepo    db.GuestRepository
+	rsvpRepo     db.RSVPRepository
 }
 
 // NewAdminDashboardHandler creates a new AdminDashboardHandler
-func NewAdminDashboardHandler(statsService *services.StatsService, guestRepo db.GuestRepository) *AdminDashboardHandler {
+func NewAdminDashboardHandler(statsService *services.StatsService, guestRepo db.GuestRepository, rsvpRepo db.RSVPRepository) *AdminDashboardHandler {
 	return &AdminDashboardHandler{
 		statsService: statsService,
 		guestRepo:    guestRepo,
+		rsvpRepo:     rsvpRepo,
 	}
 }
 
@@ -364,6 +366,37 @@ func csvCell(row []string, header map[string]int, column string) string {
 		return ""
 	}
 	return strings.TrimSpace(row[idx])
+}
+
+// HandleDeleteGuest deletes a guest and their associated RSVP
+func (h *AdminDashboardHandler) HandleDeleteGuest(w http.ResponseWriter, r *http.Request) {
+	claims := auth.GetClaims(r.Context())
+	if claims == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	guestID := strings.TrimSpace(r.PathValue("id"))
+	if guestID == "" {
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	// Delete associated RSVP first (ignore not-found errors)
+	if err := h.rsvpRepo.DeleteRSVPByGuestID(r.Context(), guestID); err != nil {
+		if !strings.Contains(err.Error(), "not found") {
+			logger.Error("failed to delete rsvp for guest", "guest_id", guestID, "error", err)
+		}
+	}
+
+	if err := h.guestRepo.DeleteGuest(r.Context(), guestID); err != nil {
+		logger.Error("failed to delete guest", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s?error=Failed+to+delete+guest", guestID), http.StatusFound)
+		return
+	}
+
+	logger.Info("guest deleted", "admin", claims.Email, "guest_id", guestID)
+	http.Redirect(w, r, "/guests", http.StatusFound)
 }
 
 func normalizeMaxPartySize(raw string) int {

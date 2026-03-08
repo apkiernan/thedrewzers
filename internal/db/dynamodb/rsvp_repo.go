@@ -129,6 +129,26 @@ func (r *RSVPRepository) UpdateRSVP(ctx context.Context, rsvp *models.RSVP) erro
 	return nil
 }
 
+// DeleteRSVPByGuestID finds and removes an RSVP by the guest's ID
+func (r *RSVPRepository) DeleteRSVPByGuestID(ctx context.Context, guestID string) error {
+	rsvp, err := r.GetRSVPByGuestID(ctx, guestID)
+	if err != nil {
+		return fmt.Errorf("finding rsvp for guest %s: %w", guestID, err)
+	}
+
+	_, err = r.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.tableName),
+		Key: map[string]types.AttributeValue{
+			"rsvp_id":  &types.AttributeValueMemberS{Value: rsvp.RSVPID},
+			"guest_id": &types.AttributeValueMemberS{Value: rsvp.GuestID},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("deleting rsvp for guest %s: %w", guestID, err)
+	}
+	return nil
+}
+
 // ListRSVPs returns all RSVPs with pagination support for large datasets
 func (r *RSVPRepository) ListRSVPs(ctx context.Context) ([]*models.RSVP, error) {
 	var rsvps []*models.RSVP

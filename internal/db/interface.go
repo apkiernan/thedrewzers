@@ -44,6 +44,9 @@ type RSVPRepository interface {
 	// UpdateRSVP updates an existing RSVP record
 	UpdateRSVP(ctx context.Context, rsvp *models.RSVP) error
 
+	// DeleteRSVPByGuestID removes an RSVP by the guest's ID
+	DeleteRSVPByGuestID(ctx context.Context, guestID string) error
+
 	// ListRSVPs returns all RSVPs
 	ListRSVPs(ctx context.Context) ([]*models.RSVP, error)
 }

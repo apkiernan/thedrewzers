@@ -71,12 +71,12 @@ func init() {
 	// Create admin server mux
 	adminServer := http.NewServeMux()
 	statsService := services.NewStatsService(guestRepo, rsvpRepo)
-	setupAdminRoutes(adminServer, adminRepo, guestRepo, statsService)
+	setupAdminRoutes(adminServer, adminRepo, guestRepo, rsvpRepo, statsService)
 	adminAdapter = httpadapter.New(adminServer)
 }
 
 // setupAdminRoutes configures routes for the admin dashboard
-func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository, guestRepo *dbdynamo.GuestRepository, statsService *services.StatsService) {
+func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository, guestRepo *dbdynamo.GuestRepository, rsvpRepo *dbdynamo.RSVPRepository, statsService *services.StatsService) {
 	// Initialize JWT service
 	jwtService, err := auth.NewJWTService()
 	if err != nil {
@@ -89,7 +89,7 @@ func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository
 
 	// Initialize handlers
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
-	dashboardHandler := handlers.NewAdminDashboardHandler(statsService, guestRepo)
+	dashboardHandler := handlers.NewAdminDashboardHandler(statsService, guestRepo, rsvpRepo)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -105,6 +105,7 @@ func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository
 	server.Handle("GET /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleAddGuests)))
 	server.Handle("GET /guests/{id}", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuestDetail)))
 	server.Handle("POST /guests/create", requireAuth(http.HandlerFunc(dashboardHandler.HandleCreateGuest)))
+	server.Handle("POST /guests/{id}/delete", requireAuth(http.HandlerFunc(dashboardHandler.HandleDeleteGuest)))
 	server.Handle("POST /guests/import", requireAuth(http.HandlerFunc(dashboardHandler.HandleImportCSV)))
 	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
 	server.Handle("GET /", requireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
