@@ -89,6 +89,28 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     compress               = true
   }
 
+  # RSVP behavior - route to API Gateway (server-rendered pages)
+  ordered_cache_behavior {
+    path_pattern     = "/rsvp*"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = "api-gateway"
+
+    forwarded_values {
+      query_string = true
+      headers      = ["Authorization", "Content-Type", "X-Requested-With"]
+      cookies {
+        forward = "all"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 0
+    max_ttl                = 0
+    compress               = true
+  }
+
   # Static assets behavior - cached longer
   ordered_cache_behavior {
     path_pattern     = "/static/*"

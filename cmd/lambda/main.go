@@ -60,6 +60,10 @@ func init() {
 
 	// Create public server mux
 	publicServer := http.NewServeMux()
+	publicServer.HandleFunc("GET /rsvp", rsvpHandler.HandleRSVPPage)
+	publicServer.HandleFunc("GET /rsvp/form", rsvpHandler.HandleRSVPForm)
+	publicServer.HandleFunc("GET /rsvp/success", rsvpHandler.HandleRSVPSuccess)
+	publicServer.HandleFunc("POST /api/rsvp/search", rsvpHandler.HandleRSVPSearch)
 	publicServer.HandleFunc("POST /api/rsvp/submit", rsvpHandler.HandleRSVPSubmit)
 	publicServer.HandleFunc("GET /api/health", handleHealthCheck)
 	publicAdapter = httpadapter.New(publicServer)
@@ -136,7 +140,7 @@ func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	}
 
 	// For public site, only process API routes
-	if !strings.HasPrefix(req.Path, "/api/") {
+	if !strings.HasPrefix(req.Path, "/api/") && !strings.HasPrefix(req.Path, "/rsvp") {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Body:       `{"error": "Not Found"}`,
