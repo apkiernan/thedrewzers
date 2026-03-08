@@ -1,6 +1,8 @@
 @font-face {
-  font-family: "Sirivennela";
-  src: url("../fonts/optimized/Sirivennela-Regular.woff2") format("woff2");
+  font-family: "Parisienne";
+  src: url("../fonts/optimized/Parisienne-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -38,7 +40,7 @@ body {
 }
 
 .script {
-  font-family: "Sirivennela", serif;
+  font-family: "Parisienne", cursive;
 }
 
 .bg-custom-gray {

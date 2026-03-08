@@ -3,18 +3,10 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Bodoni Moda";
-  src: url("../fonts/optimized/BodoniModa-Variable.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Parisienne";
+  src: url("../fonts/optimized/Parisienne-Regular.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Bodoni Moda";
-  src: url("../fonts/optimized/BodoniModa-Italic-Variable.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: italic;
   font-display: swap;
 }
 
@@ -26,7 +18,7 @@
 }
 
 .script {
-  font-family: "Bodoni Moda", serif;
+  font-family: "Parisienne", cursive;
 }
 
 .bg-custom-gray {

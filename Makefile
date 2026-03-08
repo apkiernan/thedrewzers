@@ -84,8 +84,12 @@ static-build: tpl optimize-images gallery-metadata scripts
 	@echo "Building static site..."
 	@go run ./cmd/build
 	@echo "Copying static assets to dist..."
-	@cp -r static/css static/fonts static/data dist/ 2>/dev/null || true
+	@cp -r static/fonts static/data dist/ 2>/dev/null || true
+	@mkdir -p dist/css
+	@cp static/css/styles.css dist/css/ 2>/dev/null || true
 	@cp static/gallery-metadata.json dist/ 2>/dev/null || true
+	@echo "Building Tailwind CSS..."
+	@npx tailwindcss -i ./src/input.css -o ./dist/css/tailwind.css -c ./tailwind.config.js --minify
 	@echo "Static site ready in ./dist/"
 
 # Lambda Configuration
