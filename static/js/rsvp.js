@@ -117,7 +117,7 @@
       if (!attendee.meal) {
         return `Please select a meal for ${attendee.name || `guest ${i + 1}`}.`;
       }
-      if (!mealOptions.includes(attendee.meal)) {
+      if (!mealOptions.some((m) => m.toLowerCase() === attendee.meal)) {
         return `Please choose a valid meal option for ${attendee.name}.`;
       }
     }
