@@ -16,8 +16,8 @@ import (
 // adminEmailWhitelist contains the only emails allowed to log in as admins.
 // This is checked BEFORE database lookup for additional security.
 var adminEmailWhitelist = map[string]bool{
-	"apkiernan@gmail.com": true,
-	// Add other allowed admin emails here
+	"apkiernan@gmail.com":     true,
+	"mollysmith128@gmail.com": true,
 }
 
 func init() {
@@ -139,33 +139,3 @@ func (h *AdminAuthHandler) HandleLogout(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
-// HandleDashboardPlaceholder provides a temporary dashboard placeholder
-func (h *AdminAuthHandler) HandleDashboardPlaceholder(w http.ResponseWriter, r *http.Request) {
-	claims := auth.GetClaims(r.Context())
-	if claims == nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(`<!DOCTYPE html>
-<html>
-<head>
-	<title>Admin Dashboard</title>
-	<link href="/static/css/tailwind.css" rel="stylesheet"/>
-</head>
-<body class="bg-gray-100 min-h-screen p-8">
-	<div class="max-w-4xl mx-auto">
-		<div class="bg-white rounded-lg shadow p-6">
-			<h1 class="text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
-			<p class="text-gray-600 mb-4">Welcome, ` + claims.Name + `!</p>
-			<p class="text-sm text-gray-500 mb-6">Role: ` + claims.Role + `</p>
-			<a href="/logout" class="text-blue-600 hover:underline">Logout</a>
-		</div>
-		<p class="text-center text-sm text-gray-400 mt-4">
-			Dashboard UI coming in Phase 5
-		</p>
-	</div>
-</body>
-</html>`))
-}

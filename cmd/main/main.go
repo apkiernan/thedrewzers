@@ -141,7 +141,7 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 	server.Handle("GET /guests", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuests)))
 	server.Handle("GET /guests/{id}", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuestDetail)))
 	server.Handle("GET /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleAddGuests)))
-	server.Handle("POST /guests/add", requireAuth(http.HandlerFunc(dashboardHandler.HandleCreateGuest)))
+	server.Handle("POST /guests/create", requireAuth(http.HandlerFunc(dashboardHandler.HandleCreateGuest)))
 	server.Handle("POST /guests/{id}/delete", requireAuth(http.HandlerFunc(dashboardHandler.HandleDeleteGuest)))
 	server.Handle("POST /guests/import", requireAuth(http.HandlerFunc(dashboardHandler.HandleImportCSV)))
 	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
