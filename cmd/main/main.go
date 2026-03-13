@@ -120,13 +120,16 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 	adminRepo := dbdynamo.NewAdminRepository(dynamoClient, dbConfig.AdminsTable)
 	guestRepo := dbdynamo.NewGuestRepository(dynamoClient, dbConfig.GuestsTable)
 	rsvpRepo := dbdynamo.NewRSVPRepository(dynamoClient, dbConfig.RSVPsTable)
+	tableRepo := dbdynamo.NewTableRepository(dynamoClient, dbConfig.TablesTable)
 
 	// Initialize services
 	statsService := services.NewStatsService(guestRepo, rsvpRepo)
+	seatingService := services.NewSeatingService(tableRepo, guestRepo, rsvpRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
 	dashboardHandler := handlers.NewAdminDashboardHandler(statsService)
+	seatingHandler := handlers.NewSeatingHandler(seatingService)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -141,7 +144,14 @@ func setupAdminRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbCo
 	server.Handle("GET /guests", requireAuth(http.HandlerFunc(dashboardHandler.HandleGuests)))
 	server.Handle("GET /rsvps/export", requireAuth(http.HandlerFunc(dashboardHandler.HandleExportCSV)))
 
-	logger.Info("admin routes enabled", "admins_table", dbConfig.AdminsTable)
+	// Seating routes
+	server.Handle("GET /seating", requireAuth(http.HandlerFunc(seatingHandler.HandleSeatingPage)))
+	server.Handle("POST /api/seating/tables", requireAuth(http.HandlerFunc(seatingHandler.HandleCreateTable)))
+	server.Handle("PUT /api/seating/tables/{id}", requireAuth(http.HandlerFunc(seatingHandler.HandleUpdateTable)))
+	server.Handle("DELETE /api/seating/tables/{id}", requireAuth(http.HandlerFunc(seatingHandler.HandleDeleteTable)))
+	server.Handle("POST /api/seating/assign", requireAuth(http.HandlerFunc(seatingHandler.HandleAssignGuest)))
+
+	logger.Info("admin routes enabled", "admins_table", dbConfig.AdminsTable, "tables_table", dbConfig.TablesTable)
 }
 
 // hasAWSCredentials checks if AWS credentials are likely available

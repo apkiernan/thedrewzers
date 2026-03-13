@@ -16,6 +16,7 @@ type Config struct {
 	GuestsTable string
 	RSVPsTable  string
 	AdminsTable string
+	TablesTable string
 	Endpoint    string // For local testing with DynamoDB Local
 }
 
@@ -26,6 +27,7 @@ func ConfigFromEnv() Config {
 		GuestsTable: getEnvOrDefault("GUESTS_TABLE", "thedrewzers-wedding-guests"),
 		RSVPsTable:  getEnvOrDefault("RSVPS_TABLE", "thedrewzers-wedding-rsvps"),
 		AdminsTable: getEnvOrDefault("ADMINS_TABLE", "thedrewzers-wedding-admins"),
+		TablesTable: getEnvOrDefault("TABLES_TABLE", "thedrewzers-wedding-tables"),
 		Endpoint:    os.Getenv("DYNAMODB_ENDPOINT"), // Empty for AWS, set for local
 	}
 }

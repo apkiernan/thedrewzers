@@ -23,4 +23,7 @@ var (
 
 	// ErrInvalidCredentials is returned when login credentials are invalid
 	ErrInvalidCredentials = errors.New("invalid credentials")
+
+	// ErrTableNotFound is returned when a seating table cannot be found
+	ErrTableNotFound = errors.New("table not found")
 )

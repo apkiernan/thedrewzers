@@ -169,7 +169,8 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
           aws_dynamodb_table.wedding_guests.arn,
           "${aws_dynamodb_table.wedding_guests.arn}/index/*",
           aws_dynamodb_table.wedding_rsvps.arn,
-          aws_dynamodb_table.wedding_admins.arn
+          aws_dynamodb_table.wedding_admins.arn,
+          aws_dynamodb_table.wedding_tables.arn
         ]
       }
     ]
@@ -203,6 +204,7 @@ resource "aws_lambda_function" "app" {
       GUESTS_TABLE  = aws_dynamodb_table.wedding_guests.name
       RSVPS_TABLE   = aws_dynamodb_table.wedding_rsvps.name
       ADMINS_TABLE  = aws_dynamodb_table.wedding_admins.name
+      TABLES_TABLE  = aws_dynamodb_table.wedding_tables.name
       JWT_SECRET    = var.jwt_secret
     }
   }

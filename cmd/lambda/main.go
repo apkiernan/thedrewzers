@@ -17,6 +17,7 @@ import (
 	dbdynamo "github.com/apkiernan/thedrewzers/internal/db/dynamodb"
 	"github.com/apkiernan/thedrewzers/internal/handlers"
 	"github.com/apkiernan/thedrewzers/internal/logger"
+	"github.com/apkiernan/thedrewzers/internal/services"
 )
 
 var publicAdapter *httpadapter.HandlerAdapter
@@ -48,11 +49,16 @@ func init() {
 	if adminsTable == "" {
 		adminsTable = "thedrewzers-wedding-admins"
 	}
+	tablesTable := os.Getenv("TABLES_TABLE")
+	if tablesTable == "" {
+		tablesTable = "thedrewzers-wedding-tables"
+	}
 
 	// Initialize repositories
 	guestRepo := dbdynamo.NewGuestRepository(dynamoClient, guestsTable)
 	rsvpRepo := dbdynamo.NewRSVPRepository(dynamoClient, rsvpsTable)
 	adminRepo := dbdynamo.NewAdminRepository(dynamoClient, adminsTable)
+	tableRepo := dbdynamo.NewTableRepository(dynamoClient, tablesTable)
 
 	// Initialize handlers
 	rsvpHandler := handlers.NewRSVPHandler(guestRepo, rsvpRepo)
@@ -65,12 +71,12 @@ func init() {
 
 	// Create admin server mux
 	adminServer := http.NewServeMux()
-	setupAdminRoutes(adminServer, adminRepo)
+	setupAdminRoutes(adminServer, adminRepo, guestRepo, rsvpRepo, tableRepo)
 	adminAdapter = httpadapter.New(adminServer)
 }
 
 // setupAdminRoutes configures routes for the admin dashboard
-func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository) {
+func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository, guestRepo *dbdynamo.GuestRepository, rsvpRepo *dbdynamo.RSVPRepository, tableRepo *dbdynamo.TableRepository) {
 	// Initialize JWT service
 	jwtService, err := auth.NewJWTService()
 	if err != nil {
@@ -84,6 +90,10 @@ func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository
 
 	// Initialize auth handler
 	authHandler := handlers.NewAdminAuthHandler(adminRepo, jwtService)
+
+	// Initialize seating service and handler
+	seatingService := services.NewSeatingService(tableRepo, guestRepo, rsvpRepo)
+	seatingHandler := handlers.NewSeatingHandler(seatingService)
 
 	// Public admin routes (no auth required)
 	server.HandleFunc("GET /login", authHandler.HandleLoginPage)
@@ -99,6 +109,13 @@ func setupAdminRoutes(server *http.ServeMux, adminRepo *dbdynamo.AdminRepository
 	server.Handle("GET /", requireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusFound)
 	})))
+
+	// Seating routes
+	server.Handle("GET /seating", requireAuth(http.HandlerFunc(seatingHandler.HandleSeatingPage)))
+	server.Handle("POST /api/seating/tables", requireAuth(http.HandlerFunc(seatingHandler.HandleCreateTable)))
+	server.Handle("PUT /api/seating/tables/{id}", requireAuth(http.HandlerFunc(seatingHandler.HandleUpdateTable)))
+	server.Handle("DELETE /api/seating/tables/{id}", requireAuth(http.HandlerFunc(seatingHandler.HandleDeleteTable)))
+	server.Handle("POST /api/seating/assign", requireAuth(http.HandlerFunc(seatingHandler.HandleAssignGuest)))
 }
 
 // handleHealthCheck provides a simple health check endpoint

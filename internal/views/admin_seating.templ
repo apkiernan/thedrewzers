@@ -1,0 +1,370 @@
+package views
+
+import (
+	"fmt"
+	"github.com/apkiernan/thedrewzers/internal/models"
+	"github.com/apkiernan/thedrewzers/internal/services"
+)
+
+templ AdminSeating(userName string, tables []*models.TableWithGuests, unassigned []*models.GuestWithRSVP, stats *services.SeatingStats) {
+	@AdminLayout(userName, "Seating", adminSeatingContent(tables, unassigned, stats))
+}
+
+templ adminSeatingContent(tables []*models.TableWithGuests, unassigned []*models.GuestWithRSVP, stats *services.SeatingStats) {
+	<div>
+		<!-- Page Title -->
+		<div class="text-center mb-12">
+			<h2 class="text-2xl font-light text-gray-800 uppercase tracking-widest">Seating Chart</h2>
+			<p class="mt-4 text-base text-gray-500">Assign guests to tables</p>
+		</div>
+
+		<!-- Stats Overview -->
+		<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+				<div class="text-3xl font-light text-gray-800">{ fmt.Sprintf("%d", stats.TotalTables) }</div>
+				<div class="text-sm uppercase tracking-widest text-gray-500 mt-2">Tables</div>
+			</div>
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+				<div class="text-3xl font-light text-gray-800">{ fmt.Sprintf("%d", stats.TotalSeated) }</div>
+				<div class="text-sm uppercase tracking-widest text-gray-500 mt-2">Seated</div>
+			</div>
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+				<div class="text-3xl font-light text-gray-800">{ fmt.Sprintf("%d", stats.TotalCapacity) }</div>
+				<div class="text-sm uppercase tracking-widest text-gray-500 mt-2">Total Capacity</div>
+			</div>
+			<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+				<div class="text-3xl font-light text-blue-600">{ fmt.Sprintf("%d", stats.UnassignedAttendees) }</div>
+				<div class="text-sm uppercase tracking-widest text-gray-500 mt-2">Unassigned</div>
+			</div>
+		</div>
+
+		<!-- Add Table Button -->
+		<div class="mb-8 flex justify-end">
+			<button
+				onclick="showAddTableModal()"
+				class="px-6 py-3 bg-gray-800 text-white text-sm uppercase tracking-widest rounded-lg hover:bg-gray-700 transition-colors"
+			>
+				+ Add Table
+			</button>
+		</div>
+
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+			<!-- Tables List -->
+			<div class="lg:col-span-2">
+				<h3 class="text-lg font-medium text-gray-800 mb-6 uppercase tracking-wider">Tables</h3>
+				
+				if len(tables) == 0 {
+					<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-12 text-center">
+						<p class="text-gray-500">No tables created yet. Click "Add Table" to get started.</p>
+					</div>
+				} else {
+					<div class="space-y-4" id="tables-list">
+						for _, tw := range tables {
+							@tableCard(tw)
+						}
+					</div>
+				}
+			</div>
+
+			<!-- Unassigned Guests -->
+			<div>
+				<h3 class="text-lg font-medium text-gray-800 mb-6 uppercase tracking-wider">
+					Unassigned ({ fmt.Sprintf("%d", len(unassigned)) })
+				</h3>
+				
+				<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+					if len(unassigned) == 0 {
+						<div class="p-8 text-center text-gray-500">
+							All guests are assigned!
+						</div>
+					} else {
+						<ul class="divide-y divide-gray-100" id="unassigned-list">
+							for _, gw := range unassigned {
+								<li class="p-4 hover:bg-gray-50 transition-colors" data-guest-id={ gw.Guest.GuestID }>
+									<div class="flex items-center justify-between">
+										<div>
+											<div class="text-base text-gray-800">{ gw.Guest.PrimaryGuest }</div>
+											<div class="text-sm text-gray-500 mt-1">
+												if gw.RSVP != nil && gw.RSVP.Attending {
+													Party of { fmt.Sprintf("%d", gw.RSVP.PartySize) }
+												} else if gw.RSVP == nil {
+													<span class="text-yellow-600">Pending (max { fmt.Sprintf("%d", gw.Guest.MaxPartySize) })</span>
+												}
+											</div>
+										</div>
+										<select 
+											class="assign-select text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+											data-guest-id={ gw.Guest.GuestID }
+										>
+											<option value="">Select table...</option>
+											for _, t := range tables {
+												<option value={ t.Table.TableID }>{ t.Table.Name }</option>
+											}
+										</select>
+									</div>
+								</li>
+							}
+						</ul>
+					}
+				</div>
+			</div>
+		</div>
+
+		<!-- Add Table Modal -->
+		<div id="add-table-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+			<div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8">
+				<h3 class="text-xl font-medium text-gray-800 mb-6">Add New Table</h3>
+				<form onsubmit="createTable(event)">
+					<div class="space-y-4">
+						<div>
+							<label class="block text-sm uppercase tracking-widest text-gray-500 mb-2">Table Name</label>
+							<input
+								type="text"
+								id="table-name"
+								placeholder="e.g., Table 1, Head Table"
+								class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+								required
+							/>
+						</div>
+						<div>
+							<label class="block text-sm uppercase tracking-widest text-gray-500 mb-2">Capacity</label>
+							<input
+								type="number"
+								id="table-capacity"
+								placeholder="8"
+								min="1"
+								value="8"
+								class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+								required
+							/>
+						</div>
+						<div>
+							<label class="block text-sm uppercase tracking-widest text-gray-500 mb-2">Shape</label>
+							<select
+								id="table-shape"
+								class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+							>
+								<option value="round">Round</option>
+								<option value="rectangle">Rectangle</option>
+							</select>
+						</div>
+					</div>
+					<div class="flex justify-end space-x-4 mt-8">
+						<button
+							type="button"
+							onclick="hideAddTableModal()"
+							class="px-6 py-3 text-gray-600 text-sm uppercase tracking-widest hover:text-gray-800 transition-colors"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="px-6 py-3 bg-gray-800 text-white text-sm uppercase tracking-widest rounded-lg hover:bg-gray-700 transition-colors"
+						>
+							Create Table
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Event delegation for assign select dropdowns
+		document.addEventListener('change', function(e) {
+			if (e.target.classList.contains('assign-select')) {
+				const guestId = e.target.dataset.guestId;
+				const tableId = e.target.value;
+				if (tableId) {
+					assignGuest(guestId, tableId);
+				}
+			}
+		});
+
+		// Event delegation for delete table buttons
+		document.addEventListener('click', function(e) {
+			const deleteBtn = e.target.closest('.delete-table-btn');
+			if (deleteBtn) {
+				const tableId = deleteBtn.dataset.tableId;
+				const tableName = deleteBtn.dataset.tableName;
+				deleteTable(tableId, tableName);
+			}
+			
+			const unassignBtn = e.target.closest('.unassign-btn');
+			if (unassignBtn) {
+				const guestId = unassignBtn.dataset.guestId;
+				unassignGuest(guestId);
+			}
+		});
+
+		function showAddTableModal() {
+			document.getElementById('add-table-modal').classList.remove('hidden');
+			document.getElementById('add-table-modal').classList.add('flex');
+			document.getElementById('table-name').focus();
+		}
+
+		function hideAddTableModal() {
+			document.getElementById('add-table-modal').classList.add('hidden');
+			document.getElementById('add-table-modal').classList.remove('flex');
+			document.getElementById('table-name').value = '';
+			document.getElementById('table-capacity').value = '8';
+		}
+
+		async function createTable(e) {
+			e.preventDefault();
+			const name = document.getElementById('table-name').value;
+			const capacity = parseInt(document.getElementById('table-capacity').value);
+			const shape = document.getElementById('table-shape').value;
+
+			try {
+				const res = await fetch('/api/seating/tables', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, capacity, shape })
+				});
+
+				if (!res.ok) {
+					const error = await res.text();
+					alert('Failed to create table: ' + error);
+					return;
+				}
+
+				window.location.reload();
+			} catch (err) {
+				alert('Failed to create table: ' + err.message);
+			}
+		}
+
+		async function assignGuest(guestId, tableId) {
+			try {
+				const res = await fetch('/api/seating/assign', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ guest_id: guestId, table_id: tableId })
+				});
+
+				if (!res.ok) {
+					const error = await res.text();
+					alert('Failed to assign guest: ' + error);
+					return;
+				}
+
+				window.location.reload();
+			} catch (err) {
+				alert('Failed to assign guest: ' + err.message);
+			}
+		}
+
+		async function unassignGuest(guestId) {
+			try {
+				const res = await fetch('/api/seating/assign', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ guest_id: guestId, table_id: '' })
+				});
+
+				if (!res.ok) {
+					const error = await res.text();
+					alert('Failed to unassign guest: ' + error);
+					return;
+				}
+
+				window.location.reload();
+			} catch (err) {
+				alert('Failed to unassign guest: ' + err.message);
+			}
+		}
+
+		async function deleteTable(tableId, tableName) {
+			if (!confirm('Delete "' + tableName + '"? All guests will be unassigned.')) {
+				return;
+			}
+
+			try {
+				const res = await fetch('/api/seating/tables/' + tableId, {
+					method: 'DELETE'
+				});
+
+				if (!res.ok) {
+					const error = await res.text();
+					alert('Failed to delete table: ' + error);
+					return;
+				}
+
+				window.location.reload();
+			} catch (err) {
+				alert('Failed to delete table: ' + err.message);
+			}
+		}
+
+		// Close modal on escape key
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') {
+				hideAddTableModal();
+			}
+		});
+
+		// Close modal on backdrop click
+		document.getElementById('add-table-modal').addEventListener('click', function(e) {
+			if (e.target === this) {
+				hideAddTableModal();
+			}
+		});
+	</script>
+}
+
+templ tableCard(tw *models.TableWithGuests) {
+	<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden" data-table-id={ tw.Table.TableID }>
+		<div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+			<div>
+				<h4 class="text-lg font-medium text-gray-800">{ tw.Table.Name }</h4>
+				<div class="text-sm text-gray-500 mt-1">
+					{ fmt.Sprintf("%d / %d seats", tw.SeatedCount, tw.Table.Capacity) }
+					if tw.SeatedCount > tw.Table.Capacity {
+						<span class="text-red-500 ml-2">⚠️ Over capacity!</span>
+					}
+				</div>
+			</div>
+			<button
+				class="delete-table-btn text-gray-400 hover:text-red-500 transition-colors p-2"
+				data-table-id={ tw.Table.TableID }
+				data-table-name={ tw.Table.Name }
+				title="Delete table"
+			>
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+				</svg>
+			</button>
+		</div>
+		
+		<div class="p-4">
+			if len(tw.Guests) == 0 {
+				<p class="text-gray-400 text-sm italic">No guests assigned</p>
+			} else {
+				<ul class="space-y-2">
+					for _, gw := range tw.Guests {
+						<li class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
+							<div>
+								<span class="text-gray-800">{ gw.Guest.PrimaryGuest }</span>
+								if gw.RSVP != nil && gw.RSVP.Attending {
+									<span class="text-sm text-gray-500 ml-2">({ fmt.Sprintf("%d", gw.RSVP.PartySize) })</span>
+								} else if gw.RSVP == nil {
+									<span class="text-sm text-yellow-600 ml-2">(pending)</span>
+								}
+							</div>
+							<button
+								class="unassign-btn text-gray-400 hover:text-red-500 transition-colors"
+								data-guest-id={ gw.Guest.GuestID }
+								title="Remove from table"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+								</svg>
+							</button>
+						</li>
+					}
+				</ul>
+			}
+		</div>
+	</div>
+}

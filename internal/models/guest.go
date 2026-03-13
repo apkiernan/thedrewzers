@@ -14,6 +14,7 @@ type Guest struct {
 	Email            string    `json:"email,omitempty" dynamodbav:"email,omitempty"`
 	Phone            string    `json:"phone,omitempty" dynamodbav:"phone,omitempty"`
 	Address          Address   `json:"address,omitempty" dynamodbav:"address,omitempty"`
+	TableID          string    `json:"table_id,omitempty" dynamodbav:"table_id,omitempty"` // Assigned seating table
 	CreatedAt        time.Time `json:"created_at" dynamodbav:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at" dynamodbav:"updated_at"`
 }

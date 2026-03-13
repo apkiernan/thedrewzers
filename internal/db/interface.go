@@ -62,3 +62,21 @@ type AdminRepository interface {
 	// UpdateLastLogin updates the last login timestamp for an admin
 	UpdateLastLogin(ctx context.Context, email string) error
 }
+
+// TableRepository defines operations for seating table data persistence
+type TableRepository interface {
+	// GetTable retrieves a table by its unique ID
+	GetTable(ctx context.Context, tableID string) (*models.Table, error)
+
+	// CreateTable creates a new table record
+	CreateTable(ctx context.Context, table *models.Table) error
+
+	// UpdateTable updates an existing table record
+	UpdateTable(ctx context.Context, table *models.Table) error
+
+	// DeleteTable removes a table by its ID
+	DeleteTable(ctx context.Context, tableID string) error
+
+	// ListTables returns all tables
+	ListTables(ctx context.Context) ([]*models.Table, error)
+}

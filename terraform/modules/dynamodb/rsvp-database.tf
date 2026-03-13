@@ -65,3 +65,20 @@ resource "aws_dynamodb_table" "wedding_admins" {
     Environment = var.environment
   }
 }
+
+# Seating tables table
+resource "aws_dynamodb_table" "wedding_tables" {
+  name         = "${var.project_name}-tables"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "table_id"
+
+  attribute {
+    name = "table_id"
+    type = "S"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-tables"
+    Environment = var.environment
+  }
+}
