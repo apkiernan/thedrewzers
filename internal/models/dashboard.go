@@ -19,10 +19,11 @@ type DashboardStats struct {
 
 // RecentRSVP represents a recent RSVP for display on the dashboard
 type RecentRSVP struct {
-	GuestName   string    `json:"guest_name"`
-	Attending   bool      `json:"attending"`
-	PartySize   int       `json:"party_size"`
-	SubmittedAt time.Time `json:"submitted_at"`
+	GuestName   string         `json:"guest_name"`
+	Attending   bool           `json:"attending"`
+	PartySize   int            `json:"party_size"`
+	Attendees   []RSVPAttendee `json:"attendees"`
+	SubmittedAt time.Time      `json:"submitted_at"`
 }
 
 // GuestWithRSVP combines a guest with their RSVP response (if any)

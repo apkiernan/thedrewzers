@@ -1,4 +1,4 @@
-// RSVP Form JavaScript
+// RSVP Form JavaScript — Per-Member Attending
 
 (function () {
   "use strict";
@@ -9,109 +9,62 @@
     "Roasted Cauliflower Al Pastor (GF-V)",
   ];
 
-  function toggleAttendingDetails(show) {
-    const details = document.getElementById("attending-details");
-    if (!details) return;
-    details.classList.toggle("hidden", !show);
-  }
-
-  function currentAttendees() {
-    const rows = document.querySelectorAll("#attendee-rows .attendee-row");
-    return Array.from(rows).map((row) => ({
-      name: (row.querySelector(".attendee-name")?.value || "").trim(),
-      meal: (row.querySelector(".attendee-meal")?.value || "").trim(),
-    }));
-  }
-
-  function createAttendeeRow(index, attendee) {
-    const row = document.createElement("div");
-    row.className = "attendee-row grid grid-cols-1 md:grid-cols-2 gap-3";
-    row.dataset.index = String(index);
-
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.className =
-      "attendee-name w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent";
-    nameInput.placeholder = `Guest ${index + 1} name`;
-    nameInput.value = attendee.name || "";
-
-    const mealSelect = document.createElement("select");
-    mealSelect.className =
-      "attendee-meal w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white";
-
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Select a meal";
-    mealSelect.appendChild(placeholder);
-
-    mealOptions.forEach((meal) => {
-      const option = document.createElement("option");
-      option.value = meal;
-      option.textContent = meal;
-      if (
-        attendee.meal &&
-        attendee.meal.toLowerCase() === meal.toLowerCase()
-      ) {
-        option.selected = true;
-      }
-      mealSelect.appendChild(option);
-    });
-
-    row.appendChild(nameInput);
-    row.appendChild(mealSelect);
-    return row;
-  }
-
-  function updateAttendeeRows(partySize) {
-    const container = document.getElementById("attendee-rows");
-    if (!container) return;
-
-    const count = Number.parseInt(partySize, 10);
-    if (!Number.isFinite(count) || count < 1) return;
-
-    const existing = currentAttendees();
-    container.innerHTML = "";
-
-    for (let i = 0; i < count; i++) {
-      const attendee = existing[i] || { name: "", meal: "" };
-      container.appendChild(createAttendeeRow(i, attendee));
-    }
+  function toggleMealRow(row, show) {
+    const mealRow = row.querySelector(".attendee-meal-row");
+    if (!mealRow) return;
+    mealRow.classList.toggle("hidden", !show);
   }
 
   function gatherFormData(form) {
-    const formData = new FormData(form);
-    const attending = formData.get("attending") === "yes";
+    const rows = document.querySelectorAll("#attendee-rows .attendee-row");
+    const attendees = [];
+    let anyAttending = false;
+    let allAttending = true;
 
-    const data = {
+    rows.forEach((row) => {
+      const name = (row.querySelector(".attendee-name")?.textContent || "").trim();
+      const attendingRadio = row.querySelector('.attendee-attending:checked');
+      const decliningRadio = row.querySelector('.attendee-declining:checked');
+      const attending = attendingRadio !== null;
+      const meal = attending
+        ? (row.querySelector(".attendee-meal")?.value || "").trim()
+        : "";
+
+      if (attending) anyAttending = true;
+      if (!attending) allAttending = false;
+
+      attendees.push({ name, attending, meal });
+    });
+
+    const attendingCount = attendees.filter((a) => a.attending).length;
+
+    return {
       guest_id: form.dataset.guestId,
-      attending,
-      party_size: 0,
-      attendees: [],
-      special_requests: "",
+      attending: anyAttending,
+      party_size: attendingCount,
+      attendees,
+      special_requests:
+        document.getElementById("special-requests")?.value || "",
     };
-
-    if (attending) {
-      const attendees = currentAttendees();
-      data.attendees = attendees;
-      data.party_size = attendees.length;
-      data.special_requests = formData.get("special_requests") || "";
-    }
-
-    return data;
   }
 
   function validateAttendees(attendees) {
-    if (attendees.length === 0) {
-      return "Please add at least one attending guest.";
+    // Check that every member has responded
+    for (let i = 0; i < attendees.length; i++) {
+      const row = document.querySelectorAll("#attendee-rows .attendee-row")[i];
+      const hasChoice =
+        row?.querySelector('.attendee-attending:checked') !== null ||
+        row?.querySelector('.attendee-declining:checked') !== null;
+      if (!hasChoice) {
+        return `Please select attending or declining for ${attendees[i].name || "guest " + (i + 1)}.`;
+      }
     }
 
-    for (let i = 0; i < attendees.length; i++) {
-      const attendee = attendees[i];
-      if (!attendee.name) {
-        return `Please enter a name for guest ${i + 1}.`;
-      }
+    // Validate meal for attending members
+    for (const attendee of attendees) {
+      if (!attendee.attending) continue;
       if (!attendee.meal) {
-        return `Please select a meal for ${attendee.name || `guest ${i + 1}`}.`;
+        return `Please select a meal for ${attendee.name}.`;
       }
       if (
         !mealOptions.some(
@@ -131,19 +84,11 @@
     const form = e.target;
     const submitButton = document.getElementById("submit-button");
 
-    const attending = form.querySelector('input[name="attending"]:checked');
-    if (!attending) {
-      alert("Please select whether you will be attending.");
-      return;
-    }
-
     const payload = gatherFormData(form);
-    if (payload.attending) {
-      const attendeeError = validateAttendees(payload.attendees);
-      if (attendeeError) {
-        alert(attendeeError);
-        return;
-      }
+    const attendeeError = validateAttendees(payload.attendees);
+    if (attendeeError) {
+      alert(attendeeError);
+      return;
     }
 
     submitButton.disabled = true;
@@ -161,8 +106,7 @@
 
       const result = await response.json();
       if (response.ok && result.success) {
-        const attendingValue = result.attending ? "yes" : "no";
-        window.location.href = `/rsvp/success?attending=${encodeURIComponent(attendingValue)}`;
+        window.location.href = `/rsvp/success?attending=${encodeURIComponent(result.attending)}`;
       } else {
         throw new Error(result.error || "Failed to submit RSVP");
       }
@@ -180,29 +124,18 @@
     const form = document.getElementById("rsvp-form");
     if (!form) return;
 
-    const attendingRadios = form.querySelectorAll('input[name="attending"]');
-    attendingRadios.forEach((radio) => {
-      radio.addEventListener("change", function () {
-        toggleAttendingDetails(this.value === "yes");
+    // Per-row attending toggle: show/hide meal select
+    const rows = document.querySelectorAll("#attendee-rows .attendee-row");
+    rows.forEach((row) => {
+      const radios = row.querySelectorAll('input[type="radio"]');
+      radios.forEach((radio) => {
+        radio.addEventListener("change", function () {
+          toggleMealRow(row, this.value === "yes");
+        });
       });
     });
 
-    const partySizeSelect = document.getElementById("party-size-select");
-    if (partySizeSelect) {
-      partySizeSelect.addEventListener("change", function () {
-        updateAttendeeRows(this.value);
-      });
-    }
-
     form.addEventListener("submit", handleFormSubmit);
-
-    const checkedRadio = form.querySelector('input[name="attending"]:checked');
-    if (checkedRadio) {
-      toggleAttendingDetails(checkedRadio.value === "yes");
-      if (checkedRadio.value === "yes" && partySizeSelect) {
-        updateAttendeeRows(partySizeSelect.value);
-      }
-    }
   }
 
   if (document.readyState === "loading") {

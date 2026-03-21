@@ -112,14 +112,13 @@ func (h *RSVPHandler) HandleRSVPForm(w http.ResponseWriter, r *http.Request) {
 
 // HandleRSVPSuccess displays the success confirmation page
 func (h *RSVPHandler) HandleRSVPSuccess(w http.ResponseWriter, r *http.Request) {
-	var attending *bool
-	switch strings.ToLower(strings.TrimSpace(r.URL.Query().Get("attending"))) {
-	case "yes", "true", "1":
-		v := true
-		attending = &v
-	case "no", "false", "0":
-		v := false
-		attending = &v
+	attending := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("attending")))
+	// Normalize to one of: "yes", "no", "partial"
+	switch attending {
+	case "yes", "no", "partial":
+		// valid
+	default:
+		attending = "yes"
 	}
 	views.App(views.RSVPSuccess(attending)).Render(r.Context(), w)
 }
@@ -154,11 +153,31 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate and normalize attendees for attending guests.
-	attendees, partySize, validationErr := validateAttendees(req, guest.MaxPartySize)
+	// Validate and normalize attendees with per-member attending flags.
+	attendees, validationErr := validateAttendees(req, guest.MaxPartySize)
 	if validationErr != "" {
 		writeJSONError(w, validationErr, http.StatusBadRequest)
 		return
+	}
+
+	// Derive top-level attending: true if any member is attending
+	anyAttending := false
+	attendingCount := 0
+	for _, a := range attendees {
+		if a.Attending {
+			anyAttending = true
+			attendingCount++
+		}
+	}
+
+	// Determine attending status for response: "yes", "no", or "partial"
+	attendingStatus := "no"
+	if anyAttending {
+		if attendingCount == len(attendees) {
+			attendingStatus = "yes"
+		} else {
+			attendingStatus = "partial"
+		}
 	}
 
 	// Build RSVP record
@@ -166,25 +185,16 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 	rsvp := &models.RSVP{
 		RSVPID:              uuid.New().String(),
 		GuestID:             guest.GuestID,
-		Attending:           req.Attending,
-		PartySize:           partySize,
+		Attending:           anyAttending,
+		PartySize:           attendingCount,
 		Attendees:           attendees,
-		AttendeeNames:       attendeeNames(attendees),
+		AttendeeNames:       attendingNames(attendees),
 		DietaryRestrictions: req.DietaryRestrictions,
 		SpecialRequests:     req.SpecialRequests,
 		SubmittedAt:         now,
 		UpdatedAt:           now,
 		IPAddress:           getClientIP(r),
 		UserAgent:           r.UserAgent(),
-	}
-
-	// If not attending, clear party details
-	if !req.Attending {
-		rsvp.PartySize = 0
-		rsvp.Attendees = nil
-		rsvp.AttendeeNames = nil
-		rsvp.DietaryRestrictions = nil
-		rsvp.SpecialRequests = ""
 	}
 
 	// Check if updating existing RSVP
@@ -212,64 +222,61 @@ func (h *RSVPHandler) HandleRSVPSubmit(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":   true,
 		"message":   "RSVP submitted successfully",
-		"attending": rsvp.Attending,
+		"attending": attendingStatus,
 	})
 }
 
-func validateAttendees(req models.RSVPRequest, maxPartySize int) ([]models.RSVPAttendee, int, string) {
-	if !req.Attending {
-		return nil, 0, ""
+func validateAttendees(req models.RSVPRequest, maxPartySize int) ([]models.RSVPAttendee, string) {
+	if len(req.Attendees) == 0 {
+		return nil, "At least one household member must be included"
 	}
 
+	// Every member must have responded (have a name set)
+	attendingCount := 0
 	attendees := make([]models.RSVPAttendee, 0, len(req.Attendees))
 	for _, attendee := range req.Attendees {
 		name := strings.TrimSpace(attendee.Name)
-		meal := strings.ToLower(strings.TrimSpace(attendee.Meal))
 		if name == "" {
-			return nil, 0, "Each attending guest must include a name"
+			return nil, "Each household member must have a name"
 		}
-		if meal == "" {
-			return nil, 0, "Each attending guest must select a meal"
+
+		a := models.RSVPAttendee{
+			Name:      name,
+			Attending: attendee.Attending,
 		}
-		if !slices.ContainsFunc(allowedMealOptions, func(m string) bool {
-			return strings.EqualFold(m, meal)
-		}) {
-			return nil, 0, "One or more meal selections are invalid"
+
+		if attendee.Attending {
+			attendingCount++
+			meal := strings.ToLower(strings.TrimSpace(attendee.Meal))
+			if meal == "" {
+				return nil, "Please select a meal for " + name
+			}
+			if !slices.ContainsFunc(allowedMealOptions, func(m string) bool {
+				return strings.EqualFold(m, meal)
+			}) {
+				return nil, "Invalid meal selection for " + name
+			}
+			a.Meal = meal
 		}
-		attendees = append(attendees, models.RSVPAttendee{
-			Name: name,
-			Meal: meal,
-		})
+		// Non-attending members have no meal stored
+
+		attendees = append(attendees, a)
 	}
 
-	if len(attendees) == 0 && len(req.AttendeeNames) > 0 {
-		return nil, 0, "Each attending guest must select a meal"
-	}
-	if len(attendees) == 0 {
-		return nil, 0, "At least one attending guest is required"
+	if attendingCount > maxPartySize {
+		return nil, "Number of attending guests exceeds maximum allowed"
 	}
 
-	partySize := req.PartySize
-	if partySize == 0 {
-		partySize = len(attendees)
-	}
-	if partySize < 1 {
-		return nil, 0, "Party size must be at least 1"
-	}
-	if partySize > maxPartySize {
-		return nil, 0, "Party size exceeds maximum allowed"
-	}
-	if len(attendees) != partySize {
-		return nil, 0, "Guest count and party size must match"
-	}
-
-	return attendees, partySize, ""
+	return attendees, ""
 }
 
-func attendeeNames(attendees []models.RSVPAttendee) []string {
+// attendingNames returns the names of attending members only.
+func attendingNames(attendees []models.RSVPAttendee) []string {
 	names := make([]string, 0, len(attendees))
 	for _, attendee := range attendees {
-		names = append(names, attendee.Name)
+		if attendee.Attending {
+			names = append(names, attendee.Name)
+		}
 	}
 	return names
 }

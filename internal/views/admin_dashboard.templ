@@ -94,52 +94,54 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 			<div class="px-8 py-6 border-b border-gray-100">
 				<h3 class="text-sm uppercase tracking-widest text-gray-500">Recent Responses</h3>
 			</div>
-			<div class="overflow-x-auto">
-				<table class="w-full">
-					<thead>
-						<tr class="border-b border-gray-100">
-							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Guest</th>
-							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Status</th>
-							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Party Size</th>
-							<th class="px-8 py-4 text-left text-sm uppercase tracking-widest text-gray-500 font-medium">Date</th>
-						</tr>
-					</thead>
-					<tbody>
-						if len(stats.RecentRSVPs) > 0 {
-							for _, rsvp := range stats.RecentRSVPs {
-								<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-									<td class="px-8 py-4 text-base text-gray-800">
-										{ rsvp.GuestName }
-									</td>
-									<td class="px-8 py-4">
-										if rsvp.Attending {
-											<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
-												Attending
-											</span>
-										} else {
-											<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-700">
-												Declined
-											</span>
+			if len(stats.RecentRSVPs) > 0 {
+				<div class="divide-y divide-gray-100">
+					for _, rsvp := range stats.RecentRSVPs {
+						<div class="px-8 py-6 hover:bg-gray-50 transition-colors">
+							<div class="flex items-center justify-between mb-4">
+								<span class="text-base font-medium text-gray-800">{ rsvp.GuestName }</span>
+								<span class="text-xs text-gray-400 uppercase tracking-wider">{ rsvp.SubmittedAt.Format("Jan 2, 2006") }</span>
+							</div>
+							if len(rsvp.Attendees) > 0 {
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 ml-1">
+									for _, attendee := range rsvp.Attendees {
+										if attendee.Attending {
+											<div class="flex items-center gap-2.5 text-sm py-1">
+												<span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+												<span class="text-gray-700">{ attendee.Name }</span>
+												if attendee.Meal != "" {
+													<span class="text-gray-400 capitalize">&middot; { attendee.Meal }</span>
+												}
+											</div>
 										}
-									</td>
-									<td class="px-8 py-4 text-base text-gray-600">
-										{ fmt.Sprintf("%d", rsvp.PartySize) }
-									</td>
-									<td class="px-8 py-4 text-base text-gray-500">
-										{ rsvp.SubmittedAt.Format("Jan 2, 2006") }
-									</td>
-								</tr>
+									}
+									for _, attendee := range rsvp.Attendees {
+										if !attendee.Attending {
+											<div class="flex items-center gap-2.5 text-sm py-1">
+												<span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>
+												<span class="text-gray-400">{ attendee.Name }</span>
+												<span class="text-red-500 italic ml-1">declined</span>
+											</div>
+										}
+									}
+								</div>
+							} else {
+								<div class="ml-1 text-sm">
+									if rsvp.Attending {
+										<span class="text-green-600">Attending ({ fmt.Sprintf("%d", rsvp.PartySize) })</span>
+									} else {
+										<span class="text-red-500">Declined</span>
+									}
+								</div>
 							}
-						} else {
-							<tr>
-								<td colspan="4" class="px-8 py-12 text-center text-gray-400 text-base italic">
-									No responses yet
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</div>
+						</div>
+					}
+				</div>
+			} else {
+				<div class="px-8 py-12 text-center text-gray-400 text-base italic">
+					No responses yet
+				</div>
+			}
 		</div>
 	</div>
 }

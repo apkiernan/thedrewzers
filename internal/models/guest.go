@@ -38,10 +38,11 @@ type RSVPRequest struct {
 	SpecialRequests     string         `json:"special_requests"`
 }
 
-// RSVPAttendee represents one attending guest and their meal choice.
+// RSVPAttendee represents one household member and their RSVP response.
 type RSVPAttendee struct {
-	Name string `json:"name" dynamodbav:"name"`
-	Meal string `json:"meal" dynamodbav:"meal"`
+	Name      string `json:"name" dynamodbav:"name"`
+	Attending bool   `json:"attending" dynamodbav:"attending"`
+	Meal      string `json:"meal" dynamodbav:"meal"`
 }
 
 // RSVP represents a guest's response to the wedding invitation

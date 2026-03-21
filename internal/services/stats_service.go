@@ -69,16 +69,19 @@ func (s *StatsService) GetDashboardStats(ctx context.Context) (*models.Dashboard
 	for _, rsvp := range rsvps {
 		if rsvp.Attending {
 			stats.TotalAttending++
-			stats.AttendingGuests += rsvp.PartySize
+		} else {
+			stats.TotalDeclined++
+		}
 
-			for _, attendee := range rsvp.Attendees {
+		// Count individual attending members and their meals
+		for _, attendee := range rsvp.Attendees {
+			if attendee.Attending {
+				stats.AttendingGuests++
 				normalized := strings.TrimSpace(strings.ToLower(attendee.Meal))
 				if normalized != "" {
 					stats.MealBreakdown[normalized]++
 				}
 			}
-		} else {
-			stats.TotalDeclined++
 		}
 	}
 
@@ -114,6 +117,7 @@ func (s *StatsService) getRecentRSVPs(rsvps []*models.RSVP, guestMap map[string]
 			GuestName:   guest.PrimaryGuest,
 			Attending:   rsvp.Attending,
 			PartySize:   rsvp.PartySize,
+			Attendees:   rsvp.Attendees,
 			SubmittedAt: rsvp.SubmittedAt,
 		})
 	}

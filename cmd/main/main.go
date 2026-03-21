@@ -98,7 +98,7 @@ func setupPublicRoutes(server *http.ServeMux, dynamoClient *dynamodb.Client, dbC
 			http.Error(w, `{"error": "RSVP system not configured"}`, http.StatusServiceUnavailable)
 		})
 		server.HandleFunc("GET /rsvp/success", func(w http.ResponseWriter, r *http.Request) {
-			views.App(views.RSVPSuccess(nil)).Render(r.Context(), w)
+			views.App(views.RSVPSuccess("yes")).Render(r.Context(), w)
 		})
 		server.HandleFunc("POST /api/rsvp/submit", func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error": "RSVP system not configured"}`, http.StatusServiceUnavailable)

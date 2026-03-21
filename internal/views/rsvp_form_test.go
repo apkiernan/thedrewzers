@@ -62,8 +62,8 @@ func TestInitialAttendeesClampsToMaxPartySize(t *testing.T) {
 
 	got := initialAttendees(guest, nil)
 	want := []models.RSVPAttendee{
-		{Name: "A", Meal: ""},
-		{Name: "B", Meal: ""},
+		{Name: "A", Attending: false, Meal: ""},
+		{Name: "B", Attending: false, Meal: ""},
 	}
 
 	if !reflect.DeepEqual(got, want) {
@@ -71,47 +71,21 @@ func TestInitialAttendeesClampsToMaxPartySize(t *testing.T) {
 	}
 }
 
-func TestDefaultPartySize(t *testing.T) {
-	tests := []struct {
-		name  string
-		guest *models.Guest
-		want  int
-	}{
-		{
-			name: "defaults to number of named invitees",
-			guest: &models.Guest{
-				PrimaryGuest:     "Jess & Evan Sahagian",
-				HouseholdMembers: []string{"Jess Sahagian", "Evan Sahagian"},
-				MaxPartySize:     2,
-			},
-			want: 2,
-		},
-		{
-			name: "caps default at max party size",
-			guest: &models.Guest{
-				PrimaryGuest:     "Family",
-				HouseholdMembers: []string{"A", "B", "C"},
-				MaxPartySize:     2,
-			},
-			want: 2,
-		},
-		{
-			name: "generic plus one defaults to one",
-			guest: &models.Guest{
-				PrimaryGuest:     "Jess Sahagian + Guest",
-				HouseholdMembers: []string{"Jess Sahagian"},
-				MaxPartySize:     2,
-			},
-			want: 1,
+func TestInitialAttendeesRestoresExistingRSVP(t *testing.T) {
+	guest := &models.Guest{
+		PrimaryGuest:     "Jess & Evan",
+		HouseholdMembers: []string{"Jess", "Evan"},
+		MaxPartySize:     2,
+	}
+	existing := &models.RSVP{
+		Attendees: []models.RSVPAttendee{
+			{Name: "Jess", Attending: true, Meal: "chicken"},
+			{Name: "Evan", Attending: false, Meal: ""},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := defaultPartySize(tt.guest)
-			if got != tt.want {
-				t.Fatalf("defaultPartySize(%+v) = %d, want %d", tt.guest, got, tt.want)
-			}
-		})
+	got := initialAttendees(guest, existing)
+	if !reflect.DeepEqual(got, existing.Attendees) {
+		t.Fatalf("initialAttendees with existing RSVP = %#v, want %#v", got, existing.Attendees)
 	}
 }
