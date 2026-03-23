@@ -24,7 +24,16 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 						for i, attendee := range initialAttendees(guest, existingRSVP) {
 							<div class="attendee-row p-6 border border-gray-200 rounded-lg" data-index={ strconv.Itoa(i) }>
 								<div class="flex items-center justify-between mb-4">
-									<span class="attendee-name text-lg text-gray-800 font-medium">{ attendee.Name }</span>
+									if i < namedCount(guest) {
+										<span class="attendee-name text-lg text-gray-800 font-medium">{ attendee.Name }</span>
+									} else {
+										<input
+											type="text"
+											class="attendee-name-input text-lg text-gray-800 font-medium border-b border-gray-300 focus:border-blue-300 focus:outline-none bg-transparent"
+											placeholder={ "Guest of " + guest.PrimaryGuest }
+											value={ attendee.Name }
+										/>
+									}
 									<div class="flex space-x-3">
 										<label class="cursor-pointer">
 											<input
@@ -46,7 +55,7 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 												name={ "attending_" + strconv.Itoa(i) }
 												value="no"
 												class="sr-only peer attendee-declining"
-												if !attendee.Attending {
+												if !attendee.Attending && i < namedCount(guest) {
 													checked
 												}
 											/>
@@ -337,7 +346,21 @@ func initialAttendees(guest *models.Guest, existingRSVP *models.RSVP) []models.R
 	for _, name := range names {
 		attendees = append(attendees, models.RSVPAttendee{Name: name, Attending: false, Meal: ""})
 	}
+
+	// Pad with unnamed +1 slots if MaxPartySize allows more guests
+	if guest != nil {
+		for len(attendees) < guest.MaxPartySize {
+			attendees = append(attendees, models.RSVPAttendee{Name: "", Attending: false, Meal: ""})
+		}
+	}
+
 	return attendees
+}
+
+// namedCount returns the number of explicitly named invitees for the guest.
+// Rows at index >= namedCount are +1 slots (unnamed guests).
+func namedCount(guest *models.Guest) int {
+	return len(namedInvitees(guest))
 }
 
 func namedInvitees(guest *models.Guest) []string {

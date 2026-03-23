@@ -71,6 +71,56 @@ func TestInitialAttendeesClampsToMaxPartySize(t *testing.T) {
 	}
 }
 
+func TestInitialAttendeesPadsPlusOneSlots(t *testing.T) {
+	guest := &models.Guest{
+		PrimaryGuest: "Casey Butler",
+		MaxPartySize: 2,
+	}
+
+	got := initialAttendees(guest, nil)
+	want := []models.RSVPAttendee{
+		{Name: "Casey Butler", Attending: false, Meal: ""},
+		{Name: "", Attending: false, Meal: ""},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("initialAttendees(%+v, nil) = %#v, want %#v", guest, got, want)
+	}
+}
+
+func TestNamedCount(t *testing.T) {
+	tests := []struct {
+		name  string
+		guest *models.Guest
+		want  int
+	}{
+		{
+			name:  "named household members",
+			guest: &models.Guest{PrimaryGuest: "Jess & Evan", HouseholdMembers: []string{"Jess", "Evan"}},
+			want:  2,
+		},
+		{
+			name:  "single guest with plus one",
+			guest: &models.Guest{PrimaryGuest: "Casey Butler", MaxPartySize: 2},
+			want:  1,
+		},
+		{
+			name:  "nil guest",
+			guest: nil,
+			want:  1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := namedCount(tt.guest)
+			if got != tt.want {
+				t.Fatalf("namedCount(%+v) = %d, want %d", tt.guest, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestInitialAttendeesRestoresExistingRSVP(t *testing.T) {
 	guest := &models.Guest{
 		PrimaryGuest:     "Jess & Evan",

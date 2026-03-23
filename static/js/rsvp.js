@@ -22,10 +22,24 @@
     let allAttending = true;
 
     rows.forEach((row) => {
-      const name = (row.querySelector(".attendee-name")?.textContent || "").trim();
+      const nameSpan = row.querySelector(".attendee-name");
+      const nameInput = row.querySelector(".attendee-name-input");
+      const isPlusOne = nameInput !== null;
+      const name = nameInput
+        ? (nameInput.value || "").trim()
+        : (nameSpan?.textContent || "").trim();
+
       const attendingRadio = row.querySelector('.attendee-attending:checked');
       const decliningRadio = row.querySelector('.attendee-declining:checked');
+      const hasChoice = attendingRadio !== null || decliningRadio !== null;
       const attending = attendingRadio !== null;
+
+      // Skip +1 rows with no selection or declining with no name entered
+      if (isPlusOne && (!hasChoice || (!attending && !name))) {
+        allAttending = false;
+        return;
+      }
+
       const meal = attending
         ? (row.querySelector(".attendee-meal")?.value || "").trim()
         : "";
@@ -49,18 +63,39 @@
   }
 
   function validateAttendees(attendees) {
-    // Check that every member has responded
-    for (let i = 0; i < attendees.length; i++) {
-      const row = document.querySelectorAll("#attendee-rows .attendee-row")[i];
+    // Check that every member has responded (uses DOM rows, not filtered attendees)
+    const rows = document.querySelectorAll("#attendee-rows .attendee-row");
+    rows.forEach((row) => {
+      const isPlusOne = row.querySelector(".attendee-name-input") !== null;
+      if (isPlusOne) return; // +1 rows without a selection are skipped in gatherFormData
+    });
+
+    // Validate named members have responded
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const isPlusOne = row.querySelector(".attendee-name-input") !== null;
+      if (isPlusOne) {
+        // For +1 rows: if accepting, name is required
+        const isAccepting = row.querySelector('.attendee-attending:checked') !== null;
+        if (isAccepting) {
+          const name = (row.querySelector(".attendee-name-input").value || "").trim();
+          if (!name) {
+            return "Please enter a name for your guest.";
+          }
+        }
+        continue;
+      }
       const hasChoice =
-        row?.querySelector('.attendee-attending:checked') !== null ||
-        row?.querySelector('.attendee-declining:checked') !== null;
+        row.querySelector('.attendee-attending:checked') !== null ||
+        row.querySelector('.attendee-declining:checked') !== null;
+      const nameSpan = row.querySelector(".attendee-name");
+      const name = (nameSpan?.textContent || "").trim();
       if (!hasChoice) {
-        return `Please select attending or declining for ${attendees[i].name || "guest " + (i + 1)}.`;
+        return `Please select attending or declining for ${name || "guest " + (i + 1)}.`;
       }
     }
 
-    // Validate meal for attending members
+    // Validate meal for attending members (from filtered attendees array)
     for (const attendee of attendees) {
       if (!attendee.attending) continue;
       if (!attendee.meal) {
