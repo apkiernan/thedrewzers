@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/apkiernan/thedrewzers/internal/assets"
 	"github.com/apkiernan/thedrewzers/internal/models"
 )
 
@@ -108,7 +109,7 @@ templ RSVPForm(guest *models.Guest, existingRSVP *models.RSVP) {
 			</form>
 		</div>
 	</div>
-	<script src="/static/js/rsvp.js"></script>
+	<script src={ assets.Asset("/static/js/rsvp.js") }></script>
 }
 
 templ RSVPNameSearch() {
