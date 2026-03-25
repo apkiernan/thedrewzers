@@ -1,5 +1,5 @@
 # Development targets
-.PHONY: all tpl styles server watch-styles build clean deploy lambda-build upload-static tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js scripts scripts-dev db-start db-stop db-setup db-seed db-clear db-logs
+.PHONY: all tpl styles server watch-styles build clean deploy lambda-build tf-init tf-plan tf-apply tf-destroy static-build static-deploy invalidate-cache gallery-metadata optimize-images minify-js scripts scripts-dev db-start db-stop db-setup db-seed db-clear db-logs
 
 # Default development target
 all: dev-build
@@ -49,6 +49,7 @@ scripts:
 	@echo "Building JavaScript files..."
 	@mkdir -p dist/js
 	@go run cmd/minify-js/main.go
+	@cp dist/js-manifest.json internal/assets/js-manifest.json
 	@echo "JavaScript build complete!"
 
 # Build scripts for development: copy unminified + run minify
@@ -57,6 +58,7 @@ scripts-dev:
 	@mkdir -p dist/js
 	@cp -r static/js/* dist/js/
 	@go run cmd/minify-js/main.go
+	@cp dist/js-manifest.json internal/assets/js-manifest.json
 	@echo "JavaScript build complete!"
 
 # Image optimization variables
@@ -108,13 +110,9 @@ clean:
 	mkdir -p $(BUILD_DIR)
 
 # Build the Lambda binary
-lambda-build: clean
+lambda-build: clean scripts
 	GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/$(LAMBDA_BINARY) ./cmd/lambda
 	cd $(BUILD_DIR) && zip -r lambda.zip $(LAMBDA_BINARY)
-
-# Upload static assets to S3
-upload-static:
-	aws s3 sync ./static s3://$(S3_BUCKET)/static/ --acl public-read --cache-control "public, max-age=31536000, immutable"
 
 # Deploy static site to S3
 static-deploy: static-build
@@ -162,10 +160,10 @@ invalidate-cache:
 		fi \
 	fi
 
-# Deploy with Terraform
+# Build and upload all artifacts
 deploy: gallery-metadata lambda-build static-deploy
-	cd terraform && terraform init
-	cd terraform && terraform apply
+	@echo ""
+	@echo "Build and static deploy complete. Run 'cd terraform && terraform apply' to deploy the Lambda."
 
 # Destroy all resources
 tf-destroy:

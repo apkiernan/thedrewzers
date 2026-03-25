@@ -8,6 +8,9 @@ build/
 
 *_templ.go
 
+# Generated asset manifest (embedded at build time)
+internal/assets/js-manifest.json
+
 # Terraform
 *.tfvars
 *.tfstate

@@ -22,8 +22,9 @@ type RecentRSVP struct {
 	GuestName   string         `json:"guest_name"`
 	Attending   bool           `json:"attending"`
 	PartySize   int            `json:"party_size"`
-	Attendees   []RSVPAttendee `json:"attendees"`
-	SubmittedAt time.Time      `json:"submitted_at"`
+	Attendees       []RSVPAttendee `json:"attendees"`
+	SpecialRequests string         `json:"special_requests,omitempty"`
+	SubmittedAt     time.Time      `json:"submitted_at"`
 }
 
 // GuestWithRSVP combines a guest with their RSVP response (if any)

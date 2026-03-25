@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"strings"
 	"github.com/apkiernan/thedrewzers/internal/models"
 )
 
@@ -133,6 +134,9 @@ templ adminDashboardContent(stats *models.DashboardStats) {
 										<span class="text-red-500">Declined</span>
 									}
 								</div>
+							}
+							if strings.TrimSpace(rsvp.SpecialRequests) != "" {
+								<p class="mt-3 ml-1 text-sm text-gray-500 italic">{ rsvp.SpecialRequests }</p>
 							}
 						</div>
 					}

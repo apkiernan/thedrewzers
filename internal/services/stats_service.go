@@ -114,11 +114,12 @@ func (s *StatsService) getRecentRSVPs(rsvps []*models.RSVP, guestMap map[string]
 			continue
 		}
 		recent = append(recent, models.RecentRSVP{
-			GuestName:   guest.PrimaryGuest,
-			Attending:   rsvp.Attending,
-			PartySize:   rsvp.PartySize,
-			Attendees:   rsvp.Attendees,
-			SubmittedAt: rsvp.SubmittedAt,
+			GuestName:       guest.PrimaryGuest,
+			Attending:        rsvp.Attending,
+			PartySize:        rsvp.PartySize,
+			Attendees:        rsvp.Attendees,
+			SpecialRequests:  rsvp.SpecialRequests,
+			SubmittedAt:      rsvp.SubmittedAt,
 		})
 	}
 
