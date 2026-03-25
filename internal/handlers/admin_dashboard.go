@@ -399,6 +399,236 @@ func (h *AdminDashboardHandler) HandleDeleteGuest(w http.ResponseWriter, r *http
 	http.Redirect(w, r, "/guests", http.StatusFound)
 }
 
+// HandleEditGuest renders the edit form for a guest
+func (h *AdminDashboardHandler) HandleEditGuest(w http.ResponseWriter, r *http.Request) {
+	claims := auth.GetClaims(r.Context())
+	if claims == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	guestID := strings.TrimSpace(r.PathValue("id"))
+	if guestID == "" {
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	guest, err := h.guestRepo.GetGuest(r.Context(), guestID)
+	if err != nil {
+		logger.Warn("failed to load guest for edit", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	errorMsg := r.URL.Query().Get("error")
+	views.AdminEditGuest(claims.Name, guest, errorMsg).Render(r.Context(), w)
+}
+
+// HandleUpdateGuest processes the guest edit form submission
+func (h *AdminDashboardHandler) HandleUpdateGuest(w http.ResponseWriter, r *http.Request) {
+	claims := auth.GetClaims(r.Context())
+	if claims == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	guestID := strings.TrimSpace(r.PathValue("id"))
+	if guestID == "" {
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit?error=Failed+to+parse+form", guestID), http.StatusFound)
+		return
+	}
+
+	primaryGuest := strings.TrimSpace(r.FormValue("primary_guest"))
+	if primaryGuest == "" {
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit?error=Primary+guest+name+is+required", guestID), http.StatusFound)
+		return
+	}
+
+	// Fetch existing guest to preserve immutable fields
+	existing, err := h.guestRepo.GetGuest(r.Context(), guestID)
+	if err != nil {
+		logger.Error("failed to fetch guest for update", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit?error=Guest+not+found", guestID), http.StatusFound)
+		return
+	}
+
+	maxPartySize := normalizeMaxPartySize(r.FormValue("max_party_size"))
+
+	existing.PrimaryGuest = primaryGuest
+	existing.HouseholdMembers = invite.ParseHouseholdMembers(r.FormValue("household_members"))
+	existing.MaxPartySize = maxPartySize
+	existing.Email = strings.TrimSpace(r.FormValue("email"))
+	existing.Phone = strings.TrimSpace(r.FormValue("phone"))
+	existing.Address = models.Address{
+		Street:  strings.TrimSpace(r.FormValue("street")),
+		City:    strings.TrimSpace(r.FormValue("city")),
+		State:   strings.TrimSpace(r.FormValue("state")),
+		Zip:     strings.TrimSpace(r.FormValue("zip")),
+		Country: "USA",
+	}
+
+	if err := h.guestRepo.UpdateGuest(r.Context(), existing); err != nil {
+		logger.Error("failed to update guest", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit?error=Failed+to+update+guest", guestID), http.StatusFound)
+		return
+	}
+
+	logger.Info("guest updated", "admin", claims.Email, "guest_id", guestID, "guest", primaryGuest)
+	http.Redirect(w, r, fmt.Sprintf("/guests/%s", guestID), http.StatusFound)
+}
+
+// HandleEditRSVP renders the edit form for an RSVP response
+func (h *AdminDashboardHandler) HandleEditRSVP(w http.ResponseWriter, r *http.Request) {
+	claims := auth.GetClaims(r.Context())
+	if claims == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	guestID := strings.TrimSpace(r.PathValue("id"))
+	if guestID == "" {
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	guestWithRSVP, err := h.statsService.GetGuestWithRSVP(r.Context(), guestID)
+	if err != nil {
+		logger.Warn("failed to load guest for RSVP edit", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	if guestWithRSVP.RSVP == nil {
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s", guestID), http.StatusFound)
+		return
+	}
+
+	errorMsg := r.URL.Query().Get("error")
+	views.AdminEditRSVP(claims.Name, guestWithRSVP, errorMsg).Render(r.Context(), w)
+}
+
+// HandleUpdateRSVP processes the RSVP edit form submission
+func (h *AdminDashboardHandler) HandleUpdateRSVP(w http.ResponseWriter, r *http.Request) {
+	claims := auth.GetClaims(r.Context())
+	if claims == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	guestID := strings.TrimSpace(r.PathValue("id"))
+	if guestID == "" {
+		http.Redirect(w, r, "/guests", http.StatusFound)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=Failed+to+parse+form", guestID), http.StatusFound)
+		return
+	}
+
+	// Fetch existing RSVP to preserve immutable fields
+	existingRSVP, err := h.rsvpRepo.GetRSVPByGuestID(r.Context(), guestID)
+	if err != nil {
+		logger.Error("failed to fetch RSVP for update", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s?error=RSVP+not+found", guestID), http.StatusFound)
+		return
+	}
+
+	// Parse per-attendee fields
+	attendees := make([]models.RSVPAttendee, 0)
+	attendingCount := 0
+	anyAttending := false
+
+	for i := 0; ; i++ {
+		name := strings.TrimSpace(r.FormValue(fmt.Sprintf("attendee_name_%d", i)))
+		if name == "" && i > 0 {
+			// Check if there really is no more attendee or just an empty name
+			if r.FormValue(fmt.Sprintf("attendee_attending_%d", i)) == "" {
+				break
+			}
+		}
+		if name == "" {
+			if r.FormValue(fmt.Sprintf("attendee_attending_%d", i)) == "" {
+				break
+			}
+			http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=Each+attendee+must+have+a+name", guestID), http.StatusFound)
+			return
+		}
+
+		attending := r.FormValue(fmt.Sprintf("attendee_attending_%d", i)) == "yes"
+		meal := ""
+
+		if attending {
+			anyAttending = true
+			attendingCount++
+			meal = strings.TrimSpace(r.FormValue(fmt.Sprintf("attendee_meal_%d", i)))
+			if meal == "" {
+				http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=Please+select+a+meal+for+%s", guestID, name), http.StatusFound)
+				return
+			}
+			if !isValidMealOption(meal) {
+				http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=Invalid+meal+selection+for+%s", guestID, name), http.StatusFound)
+				return
+			}
+		}
+
+		attendees = append(attendees, models.RSVPAttendee{
+			Name:      name,
+			Attending: attending,
+			Meal:      meal,
+		})
+	}
+
+	if len(attendees) == 0 {
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=At+least+one+attendee+is+required", guestID), http.StatusFound)
+		return
+	}
+
+	// Update RSVP preserving immutable fields
+	existingRSVP.Attending = anyAttending
+	existingRSVP.PartySize = attendingCount
+	existingRSVP.Attendees = attendees
+	existingRSVP.SpecialRequests = strings.TrimSpace(r.FormValue("special_requests"))
+
+	// Update attendee names list
+	attendeeNames := make([]string, 0, len(attendees))
+	for _, a := range attendees {
+		if a.Attending {
+			attendeeNames = append(attendeeNames, a.Name)
+		}
+	}
+	existingRSVP.AttendeeNames = attendeeNames
+
+	if err := h.rsvpRepo.UpdateRSVP(r.Context(), existingRSVP); err != nil {
+		logger.Error("failed to update RSVP", "guest_id", guestID, "error", err)
+		http.Redirect(w, r, fmt.Sprintf("/guests/%s/edit-rsvp?error=Failed+to+update+RSVP", guestID), http.StatusFound)
+		return
+	}
+
+	logger.Info("rsvp updated by admin", "admin", claims.Email, "guest_id", guestID, "attending", anyAttending, "party_size", attendingCount)
+	http.Redirect(w, r, fmt.Sprintf("/guests/%s", guestID), http.StatusFound)
+}
+
+// isValidMealOption checks if a meal string matches one of the allowed options
+func isValidMealOption(meal string) bool {
+	allowed := []string{
+		"Roasted Boneless Chicken Breast",
+		"Grilled Brandt Farms 10z NY Strip",
+		"Roasted Cauliflower Al Pastor (GF-V)",
+	}
+	for _, m := range allowed {
+		if strings.EqualFold(strings.TrimSpace(meal), strings.TrimSpace(m)) {
+			return true
+		}
+	}
+	return false
+}
+
 func normalizeMaxPartySize(raw string) int {
 	parsed, err := strconv.Atoi(strings.TrimSpace(raw))
 	if err != nil {

@@ -20,6 +20,10 @@ resource "aws_dynamodb_table" "wedding_guests" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name        = "${var.project_name}-guests"
     Environment = var.environment
@@ -43,6 +47,10 @@ resource "aws_dynamodb_table" "wedding_rsvps" {
     type = "S"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Name        = "${var.project_name}-rsvps"
     Environment = var.environment
@@ -58,6 +66,10 @@ resource "aws_dynamodb_table" "wedding_admins" {
   attribute {
     name = "email"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
