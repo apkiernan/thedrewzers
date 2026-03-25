@@ -37,7 +37,7 @@ templ adminEditRSVPContent(guestWithRSVP *models.GuestWithRSVP, errorMsg string)
 				<div>
 					<h3 class="text-sm uppercase tracking-widest text-gray-500 mb-6">Attendees & Meals</h3>
 					<div class="space-y-6">
-						for i, attendee := range guestWithRSVP.RSVP.Attendees {
+						for i, attendee := range mergedAttendees(guestWithRSVP) {
 							<div class="attendee-row p-6 border border-gray-200 rounded-lg">
 								<div class="mb-4">
 									<label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -131,4 +131,18 @@ func editRSVPAttendeeCount(guestWithRSVP *models.GuestWithRSVP) string {
 		return "0"
 	}
 	return strconv.Itoa(len(guestWithRSVP.RSVP.Attendees))
+}
+
+// mergedAttendees returns the full list of attendees for the edit form.
+// It starts with the RSVP attendees, then pads with empty slots up to
+// MaxPartySize so the admin can add missing household members.
+func mergedAttendees(guestWithRSVP *models.GuestWithRSVP) []models.RSVPAttendee {
+	result := make([]models.RSVPAttendee, len(guestWithRSVP.RSVP.Attendees))
+	copy(result, guestWithRSVP.RSVP.Attendees)
+
+	// Pad up to MaxPartySize with empty declined slots
+	for len(result) < guestWithRSVP.Guest.MaxPartySize {
+		result = append(result, models.RSVPAttendee{})
+	}
+	return result
 }
