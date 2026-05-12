@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  let weddingDate = new Date("2026-05-30T17:30:00-04:00");
+  let weddingDate = new Date("2026-05-30T00:00:00-04:00");
   let timerEl;
 
   if (document.readyState === "loading") {
@@ -35,6 +35,8 @@
     timerEl.innerHTML =
       '<span class="font-bold text-gray-700">' +
       days +
-      "</span> days to go";
+      "</span> " +
+      (days === 1 ? "day" : "days") +
+      " to go";
   }
 })();
